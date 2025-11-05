@@ -1,15 +1,14 @@
 document.addEventListener('DOMContentLoaded', function () {
-    // Безопасно инициализируем WebApp
     const webApp = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
 
     // --- НАСТРОЙКИ ---
-    // ⚠️ ВСТАВЬТЕ СЮДА ВАШУ CSV-ССЫЛКУ ИЗ GOOGLE SHEETS
+    // ⚠️ Убедитесь, что здесь ваша правильная CSV-ссылка из Google Sheets
     const GOOGLE_SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vS9X0GUMusSveT9KojVe4g2EhG3C_MTsEzjfnEkDLyc0fhO56Z8ALs0jX1c-0ffuyXo2vkO1vdD8ank/pub?gid=0&single=true&output=csv';
     const CURRENCY = '₽';
 
     // --- Глобальные переменные ---
-    let menuData = []; // Единый массив для всех блюд
-    const cart = {}; // Корзина
+    let menuData = [];
+    const cart = {};
     const contentContainer = document.getElementById('content-container');
     const searchInput = document.getElementById('search-input');
     const floatingCartBtn = document.getElementById('floating-cart-btn');
@@ -38,7 +37,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 };
                 if (!item.id || !item.category || !item.name || isNaN(item.price) || !item.image_url) return null;
                 return item;
-            }).filter(Boolean); // Убираем все null (некорректные строки)
+            }).filter(Boolean);
             
             renderCategories();
         } catch (error) {
@@ -74,7 +73,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 <button id="back-to-categories-btn">←</button>
                 <h2>${title}</h2>
             </div>
-            <div class="grid-container">`; // Используем ту же сетку
+            <div class="grid-container">`;
         items.forEach(item => {
             const quantity = cart[item.id] || 0;
             html += `
@@ -142,14 +141,9 @@ document.addEventListener('DOMContentLoaded', function () {
         floatingCartBtn.style.display = 'flex';
 
         if (totalItems > 0) {
-            if(webApp) {
-                webApp.MainButton.setText(`Оформить заказ (${totalPrice} ${CURRENCY})`);
-                webApp.MainButton.show();
-            }
-            checkoutBtn.style.display = 'block'; // Показываем кнопку в модальном окне
+            checkoutBtn.style.display = 'block';
         } else {
-            if(webApp) webApp.MainButton.hide();
-            checkoutBtn.style.display = 'none'; // Скрываем кнопку, если корзина пуста
+            checkoutBtn.style.display = 'none';
         }
     }
     
@@ -168,7 +162,6 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
     
-    // Обновляет ОДНУ карточку товара, превращая кнопку "+" в счетчик и обратно
     function updateItemControls(id) {
         const controlsDiv = document.getElementById(`controls-${id}`);
         if (!controlsDiv) return;
@@ -190,7 +183,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // --- ОБРАБОТЧИКИ СОБЫТИЙ ---
     function attachEventListeners() {
-        // Клик по карточке категории
         document.querySelectorAll('.category-card').forEach(card => {
             card.addEventListener('click', () => {
                 const category = card.dataset.category;
@@ -198,12 +190,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 renderItems(items, category);
             });
         });
-        // Кнопка "назад"
         const backBtn = document.getElementById('back-to-categories-btn');
         if (backBtn) backBtn.addEventListener('click', renderCategories);
     }
     
-    // "Умный" Поиск
     searchInput.addEventListener('input', (e) => {
         const query = e.target.value.toLowerCase().trim();
         if (query.length > 1) {
@@ -217,7 +207,6 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
     
-    // Делегирование кликов для всех кнопок +/- (на всем документе)
     document.body.addEventListener('click', e => {
         const plus = e.target.closest('.btn-plus, .btn-plus-item');
         const minus = e.target.closest('.btn-minus');
@@ -225,7 +214,6 @@ document.addEventListener('DOMContentLoaded', function () {
         if (minus) removeFromCart(minus.dataset.id);
     });
 
-    // Открытие и закрытие модального окна корзины
     floatingCartBtn.addEventListener('click', () => modalOverlay.classList.remove('hidden'));
     closeModalBtn.addEventListener('click', () => modalOverlay.classList.add('hidden'));
     modalOverlay.addEventListener('click', (e) => {
@@ -260,16 +248,13 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
     
-    // Назначаем обработчик на обе кнопки
+    // Назначаем обработчик на кнопку в модальном окне
     checkoutBtn.addEventListener('click', handleCheckout);
-    if (webApp) {
-        webApp.onEvent('mainButtonClicked', handleCheckout);
-        checkoutBtn.style.display = 'none'; // В Telegram используем MainButton, скрываем эту
-    }
-
 
     // --- ИНИЦИАЛИЗАЦИЯ ---
-    if(webApp) webApp.expand();
+    if(webApp) {
+        webApp.expand();
+    }
     loadMenu();
     updateCartView();
 });
