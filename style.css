@@ -1,90 +1,84 @@
-/* --- Глобальные стили и переменные --- */
+/* --- Глобальные стили, переменные и шрифт --- */
 :root {
-    --tg-bg-color: var(--tg-theme-bg-color, #f4f4f4);
-    --tg-text-color: var(--tg-theme-text-color, #222222);
-    --tg-hint-color: var(--tg-theme-hint-color, #8e8e93);
-    --tg-button-color: var(--tg-theme-button-color, #007aff);
-    --tg-button-text-color: var(--tg-theme-button-text-color, #ffffff);
-    --tg-secondary-bg-color: var(--tg-theme-secondary-bg-color, #ffffff);
+    --tg-theme-bg-color: #f4f4f4;
+    --tg-theme-text-color: #222222;
+    --tg-theme-hint-color: #8e8e93;
+    --tg-theme-button-color: #007aff;
+    --tg-theme-button-text-color: #ffffff;
+    --tg-theme-secondary-bg-color: #ffffff;
+    --border-radius: 12px;
+    --gap: 15px;
 }
 
 body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    font-family: 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     margin: 0;
-    padding: 15px;
-    background-color: var(--tg-bg-color);
-    color: var(--tg-text-color);
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
+    padding: var(--gap);
+    background-color: var(--tg-theme-bg-color);
+    color: var(--tg-theme-text-color);
+    overscroll-behavior-y: none; /* Убираем "оттягивание" страницы на мобильных */
 }
 
-.container {
-    max-width: 100%;
-    margin: 0 auto;
-}
-
-/* --- Стили для "Страниц" (экранов) --- */
-.page {
-    display: none;
-}
-.page.active {
-    display: block;
-}
-.page-header {
+/* --- Шапка --- */
+.app-header {
     display: flex;
+    flex-direction: column;
     align-items: center;
-    margin-bottom: 15px;
+    margin-bottom: var(--gap);
 }
-.page-header button {
-    font-size: 24px;
-    background: none;
-    border: none;
-    color: var(--tg-hint-color);
-    margin-right: 15px;
-    padding: 5px;
-    cursor: pointer;
+.logo {
+    width: 80px;
+    height: 80px;
+    margin-bottom: 10px;
 }
-.page-header h2 {
+.app-header h1 {
+    font-size: 22px;
+    font-weight: 700;
     margin: 0;
-    font-size: 20px;
 }
 
-/* --- Поле поиска --- */
-.search-bar {
-    margin-bottom: 20px;
+/* --- Поиск --- */
+.search-container {
+    position: sticky;
+    top: var(--gap);
+    background-color: var(--tg-theme-bg-color);
+    padding-bottom: var(--gap);
+    z-index: 10;
 }
 #search-input {
     width: 100%;
-    padding: 12px;
+    padding: 12px 15px;
     font-size: 16px;
     border: none;
-    background-color: var(--tg-secondary-bg-color);
-    color: var(--tg-text-color);
-    border-radius: 10px;
+    background-color: var(--tg-theme-secondary-bg-color);
+    color: var(--tg-theme-text-color);
+    border-radius: var(--border-radius);
     box-sizing: border-box;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
 }
-#search-input::placeholder {
-    color: var(--tg-hint-color);
+#search-input::placeholder { color: var(--tg-theme-hint-color); }
+#search-input:focus {
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    transform: scale(1.02);
 }
 
 /* --- Сетка категорий --- */
 #category-grid {
     display: grid;
-    grid-template-columns: repeat(2, 1fr); /* Две колонки */
-    gap: 15px;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--gap);
 }
 .category-card {
-    background-color: var(--tg-secondary-bg-color);
-    border-radius: 12px;
+    background-color: var(--tg-theme-secondary-bg-color);
+    border-radius: var(--border-radius);
     overflow: hidden;
     text-align: center;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
     cursor: pointer;
     transition: transform 0.2s ease;
 }
-.category-card:active {
-    transform: scale(0.96);
-}
+.category-card:active { transform: scale(0.96); }
 .category-card .image-container {
     height: 100px;
     background-size: cover;
@@ -95,59 +89,41 @@ body {
     font-weight: 600;
 }
 
-/* --- Список блюд --- */
-#items-list, #cart-items-list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-}
-.menu-item, .cart-item {
+/* --- Список блюд и результаты поиска --- */
+.items-list { list-style: none; padding: 0; margin: 0; }
+.menu-item {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 15px 10px;
-    background-color: var(--tg-secondary-bg-color);
-    border-radius: 10px;
+    padding: var(--gap);
+    background-color: var(--tg-theme-secondary-bg-color);
+    border-radius: var(--border-radius);
     margin-bottom: 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
 }
-.item-info {
-    flex-grow: 1;
-    margin-right: 15px;
-}
-.item-info p { margin: 0; font-weight: 500; }
-.item-price { font-size: 14px; color: var(--tg-hint-color); margin-top: 4px; }
+.item-info { flex-grow: 1; margin-right: var(--gap); }
+.item-info p { margin: 0; font-weight: 600; }
+.item-price { font-size: 14px; color: var(--tg-theme-hint-color); margin-top: 4px; }
 .item-controls { display: flex; align-items: center; }
 .item-controls button {
     width: 32px; height: 32px; border: none;
-    background-color: var(--tg-button-color);
-    color: var(--tg-button-text-color);
+    background-color: var(--tg-theme-button-color);
+    color: var(--tg-theme-button-text-color);
     border-radius: 50%;
     font-size: 20px; font-weight: bold; cursor: pointer;
     line-height: 32px;
 }
 .item-controls span { margin: 0 14px; font-size: 18px; min-width: 24px; text-align: center; }
 
-/* --- Корзина --- */
-.total-line {
-    font-weight: bold;
-    font-size: 18px;
-    display: flex;
-    justify-content: space-between;
-    margin-top: 20px;
-    padding: 15px;
-    background-color: var(--tg-secondary-bg-color);
-    border-radius: 10px;
-}
-
 /* --- Плавающая кнопка корзины --- */
-#floating-cart-button {
+#floating-cart-btn {
     position: fixed;
     bottom: 20px;
     left: 50%;
     transform: translateX(-50%);
     padding: 12px 25px;
-    background-color: var(--tg-button-color);
-    color: var(--tg-button-text-color);
+    background-color: var(--tg-theme-button-color);
+    color: var(--tg-theme-button-text-color);
     border-radius: 20px;
     font-size: 16px;
     font-weight: 600;
@@ -155,11 +131,59 @@ body {
     cursor: pointer;
     transition: opacity 0.3s ease, transform 0.3s ease;
     opacity: 0;
+    z-index: 20;
 }
-#floating-cart-button.visible {
+#floating-cart-btn.visible { opacity: 1; }
+#floating-cart-btn.hidden { opacity: 0; transform: translateX(-50%) translateY(100px); }
+
+/* --- Модальное окно корзины --- */
+.modal-overlay {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background-color: rgba(0,0,0,0.4);
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
     opacity: 1;
+    transition: opacity 0.3s ease;
+    z-index: 30;
 }
-#floating-cart-button.hidden {
+.modal-overlay.hidden {
     opacity: 0;
-    transform: translateX(-50%) translateY(100px);
+    pointer-events: none;
 }
+.modal-content {
+    background-color: var(--tg-bg-color);
+    width: 100%;
+    max-height: 80%;
+    border-radius: var(--border-radius) var(--border-radius) 0 0;
+    padding: var(--gap);
+    box-sizing: border-box;
+    transform: translateY(0);
+    transition: transform 0.3s ease;
+    display: flex;
+    flex-direction: column;
+}
+.modal-overlay.hidden .modal-content {
+    transform: translateY(100%);
+}
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--gap);
+}
+.modal-header h2 { font-size: 20px; margin: 0; }
+#close-modal-btn { font-size: 28px; background: none; border: none; color: var(--tg-hint-color); cursor: pointer; }
+#cart-items-list { flex-grow: 1; overflow-y: auto; list-style: none; padding: 0; margin: 0; }
+.modal-footer { margin-top: auto; }
+.total-line {
+    font-weight: bold;
+    font-size: 18px;
+    display: flex;
+    justify-content: space-between;
+    padding-top: var(--gap);
+    border-top: 1px solid var(--tg-hint-color);
+}
+#empty-cart-message { color: var(--tg-hint-color); text-align: center; padding: 20px; }

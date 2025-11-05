@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', function () {
+  document.addEventListener('DOMContentLoaded', function () {
     const webApp = window.Telegram.WebApp;
 
     // --- НАСТРОЙКИ ---
@@ -7,113 +7,100 @@ document.addEventListener('DOMContentLoaded', function () {
     const CURRENCY = '₽';
 
     // --- Глобальные переменные ---
-    let menuData = []; // Плоский список всех блюд
+    let menuData = [];
     const cart = {};
-    const pages = {
-        categories: document.getElementById('page-categories'),
-        items: document.getElementById('page-items'),
-        cart: document.getElementById('page-cart')
-    };
+    const contentContainer = document.getElementById('content-container');
     
     // --- Элементы UI ---
     const searchInput = document.getElementById('search-input');
-    const categoryGrid = document.getElementById('category-grid');
-    const itemsList = document.getElementById('items-list');
-    const categoryTitle = document.getElementById('category-title');
-    const backToCategoriesBtn = document.getElementById('back-to-categories');
-    const floatingCartBtn = document.getElementById('floating-cart-button');
-    const backFromCartBtn = document.getElementById('back-from-cart');
-    const cartItemsList = document.getElementById('cart-items-list');
-    const cartTotalPrice = document.getElementById('cart-total-price');
+    const floatingCartBtn = document.getElementById('floating-cart-btn');
+    const modalOverlay = document.getElementById('cart-modal');
+    const closeModalBtn = document.getElementById('close-modal-btn');
 
     // --- Навигация ---
-    function showPage(pageName) {
-        Object.values(pages).forEach(page => page.classList.remove('active'));
-        pages[pageName].classList.add('active');
-        if (pageName === 'categories') {
-            renderCategories();
-        }
+    function showContent(html) {
+        contentContainer.innerHTML = html;
+        attachEventListeners(); // Переназначаем слушатели после обновления контента
     }
-    
-    backToCategoriesBtn.addEventListener('click', () => showPage('categories'));
-    floatingCartBtn.addEventListener('click', () => showPage('cart'));
-    backFromCartBtn.addEventListener('click', () => {
-        // Возвращаемся на предыдущий активный экран
-        if (pages.items.dataset.wasActive) {
-            showPage('items');
-        } else {
-            showPage('categories');
-        }
-    });
+
+    function showBackButton(show = false, onClick = null) {
+        // Логика кнопки "назад" будет добавлена, если понадобится сложная навигация
+    }
 
     // --- Загрузка и обработка данных ---
     async function loadMenu() {
         try {
+            contentContainer.innerHTML = '<p style="text-align:center;">Загрузка меню...</p>';
             const response = await fetch(GOOGLE_SHEET_CSV_URL);
             if (!response.ok) throw new Error('Network response was not ok');
             const csvText = await response.text();
             const rows = csvText.split('\n').slice(1);
             menuData = rows.map(row => {
                 const columns = row.match(/(".*?"|[^",]+)(?=\s*,|\s*$)/g) || [];
-                if (columns.length < 4) return null;
+                if (columns.length < 5) return null; // Теперь 5 колонок
                 const clean = columns.map(c => c.trim().replace(/^"|"$/g, ''));
                 return {
-                    id: clean[0],
-                    category: clean[1],
-                    name: clean[2],
-                    price: parseFloat(clean[3])
+                    id: clean[0], category: clean[1], name: clean[2],
+                    price: parseFloat(clean[3]), image_url: clean[4]
                 };
-            }).filter(item => item && item.id && item.category && item.name && !isNaN(item.price));
+            }).filter(item => item && item.id && item.category && item.name && !isNaN(item.price) && item.image_url);
             
             renderCategories();
         } catch (error) {
             console.error('Failed to load menu:', error);
-            categoryGrid.innerHTML = '<p style="color:red">Ошибка загрузки меню.</p>';
+            contentContainer.innerHTML = '<p style="color:red;text-align:center;">Ошибка загрузки меню.</p>';
         }
     }
 
     // --- Рендеринг (отображение) ---
     function renderCategories() {
-        const categories = [...new Set(menuData.map(item => item.category))];
-        categoryGrid.innerHTML = '';
-        categories.forEach(cat => {
-            const card = document.createElement('div');
-            card.className = 'category-card';
-            // В будущем здесь будет картинка
-            card.innerHTML = `<div class="image-container"></div><p>${cat}</p>`;
-            card.addEventListener('click', () => {
-                renderItems(cat);
-                showPage('items');
-            });
-            categoryGrid.appendChild(card);
-        });
+        const categories = menuData.reduce((acc, item) => {
+            if (!acc[item.category]) {
+                acc[item.category] = item.image_url;
+            }
+            return acc;
+        }, {});
+
+        let html = '<div id="category-grid">';
+        for (const cat in categories) {
+            html += `
+                <div class="category-card" data-category="${cat}">
+                    <div class="image-container" style="background-image: url('${categories[cat]}')"></div>
+                    <p>${cat}</p>
+                </div>`;
+        }
+        html += '</div>';
+        showContent(html);
     }
 
-    function renderItems(category, itemsToRender = null) {
-        const items = itemsToRender || menuData.filter(item => item.category === category);
-        itemsList.innerHTML = '';
-        categoryTitle.innerText = category || 'Результаты поиска';
-
+    function renderItems(items, title) {
+        let html = `
+            <div class="page-header">
+                <button id="back-to-categories-btn">←</button>
+                <h2>${title}</h2>
+            </div>
+            <ul class="items-list">`;
         items.forEach(item => {
-            const li = document.createElement('li');
-            li.className = 'menu-item';
-            li.innerHTML = `
-                <div class="item-info">
-                    <p>${item.name}</p>
-                    <p class="item-price">${item.price} ${CURRENCY}</p>
-                </div>
-                <div class="item-controls">
-                    <button class="btn-minus" data-id="${item.id}">-</button>
-                    <span id="quantity-${item.id}">${cart[item.id] || 0}</span>
-                    <button class="btn-plus" data-id="${item.id}">+</button>
-                </div>`;
-            itemsList.appendChild(li);
+            html += `
+                <li class="menu-item">
+                    <div class="item-info">
+                        <p>${item.name}</p>
+                        <p class="item-price">${item.price} ${CURRENCY}</p>
+                    </div>
+                    <div class="item-controls">
+                        <button class="btn-minus" data-id="${item.id}">-</button>
+                        <span id="quantity-${item.id}">${cart[item.id] || 0}</span>
+                        <button class="btn-plus" data-id="${item.id}">+</button>
+                    </div>
+                </li>`;
         });
-        pages.items.dataset.wasActive = 'true';
-        pages.categories.dataset.wasActive = 'false';
+        html += '</ul>';
+        showContent(html);
     }
 
     function updateCartView() {
+        const cartItemsList = document.getElementById('cart-items-list');
+        const cartTotalPriceEl = document.getElementById('cart-total-price');
         cartItemsList.innerHTML = '';
         let totalItems = 0;
         let totalPrice = 0;
@@ -127,11 +114,10 @@ document.addEventListener('DOMContentLoaded', function () {
             totalPrice += item.price * quantity;
 
             const li = document.createElement('li');
-            li.className = 'cart-item';
+            li.className = 'menu-item'; // Используем тот же стиль
             li.innerHTML = `
                 <div class="item-info">
                     <p>${item.name}</p>
-                    <p class="item-price">${item.price} ${CURRENCY}</p>
                 </div>
                 <div class="item-controls">
                     <button class="btn-minus" data-id="${item.id}">-</button>
@@ -141,12 +127,16 @@ document.addEventListener('DOMContentLoaded', function () {
             cartItemsList.appendChild(li);
         });
 
-        cartTotalPrice.innerText = `${totalPrice} ${CURRENCY}`;
+        if (totalItems === 0) {
+            cartItemsList.innerHTML = '<p id="empty-cart-message">Корзина пуста</p>';
+        }
+
+        cartTotalPriceEl.innerText = `${totalPrice} ${CURRENCY}`;
+        document.getElementById('floating-cart-text').innerText = `Корзина (${totalItems})`;
 
         if (totalItems > 0) {
             floatingCartBtn.classList.add('visible');
             floatingCartBtn.classList.remove('hidden');
-            document.getElementById('floating-cart-text').innerText = `Корзина (${totalItems})`;
             webApp.MainButton.setText(`Оформить заказ (${totalPrice} ${CURRENCY})`);
             webApp.MainButton.show();
         } else {
@@ -155,7 +145,7 @@ document.addEventListener('DOMContentLoaded', function () {
             webApp.MainButton.hide();
         }
     }
-
+    
     // --- Логика корзины ---
     function addToCart(id) {
         cart[id] = (cart[id] || 0) + 1;
@@ -175,28 +165,51 @@ document.addEventListener('DOMContentLoaded', function () {
         if (el) el.innerText = cart[id] || 0;
     }
 
-    // --- Поиск ---
+    // --- Обработчики событий ---
+    function attachEventListeners() {
+        const categoryCards = document.querySelectorAll('.category-card');
+        categoryCards.forEach(card => {
+            card.addEventListener('click', () => {
+                const category = card.dataset.category;
+                const items = menuData.filter(item => item.category === category);
+                renderItems(items, category);
+            });
+        });
+
+        const backBtn = document.getElementById('back-to-categories-btn');
+        if (backBtn) {
+            backBtn.addEventListener('click', renderCategories);
+        }
+    }
+
     searchInput.addEventListener('input', (e) => {
-        const query = e.target.value.toLowerCase();
+        const query = e.target.value.toLowerCase().trim();
         if (query.length > 1) {
             const results = menuData.filter(item => item.name.toLowerCase().includes(query));
-            renderItems('Результаты поиска', results);
-            showPage('items');
+            renderItems(results, 'Результаты поиска');
         } else if (query.length === 0) {
-            showPage('categories');
+            renderCategories();
         }
     });
-
-    // --- Обработчики кнопок (+/-) ---
+    
     document.body.addEventListener('click', e => {
         const plus = e.target.closest('.btn-plus');
         const minus = e.target.closest('.btn-minus');
         if (plus) addToCart(plus.dataset.id);
         if (minus) removeFromCart(minus.dataset.id);
     });
-    
+
+    floatingCartBtn.addEventListener('click', () => modalOverlay.classList.remove('hidden'));
+    closeModalBtn.addEventListener('click', () => modalOverlay.classList.add('hidden'));
+    modalOverlay.addEventListener('click', (e) => {
+        if (e.target === modalOverlay) {
+            modalOverlay.classList.add('hidden');
+        }
+    });
+
     // --- Отправка заказа ---
     webApp.onEvent('mainButtonClicked', function () {
+        // ... (здесь будет логика отправки заказа, как мы делали раньше: webApp.sendData(...))
         const orderData = { cart: {}, totalPrice: 0, userInfo: webApp.initDataUnsafe.user };
         let total = 0;
         Object.keys(cart).forEach(id => {
