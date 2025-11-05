@@ -1,5 +1,6 @@
 document.addEventListener('DOMContentLoaded', function () {
-    const webApp = window.Telegram.WebApp;
+    // Безопасно инициализируем WebApp
+    const webApp = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
 
     // --- НАСТРОЙКИ ---
     // ⚠️ ВСТАВЬТЕ СЮДА ВАШУ CSV-ССЫЛКУ ИЗ GOOGLE SHEETS
@@ -7,13 +8,14 @@ document.addEventListener('DOMContentLoaded', function () {
     const CURRENCY = '₽';
 
     // --- Глобальные переменные ---
-    let menuData = [];
-    const cart = {};
+    let menuData = []; // Единый массив для всех блюд
+    const cart = {}; // Корзина
     const contentContainer = document.getElementById('content-container');
     const searchInput = document.getElementById('search-input');
     const floatingCartBtn = document.getElementById('floating-cart-btn');
     const modalOverlay = document.getElementById('cart-modal');
     const closeModalBtn = document.getElementById('close-modal-btn');
+    const checkoutBtn = document.getElementById('checkout-btn');
 
     // --- ЗАГРУЗКА И ОБРАБОТКА ДАННЫХ ---
     async function loadMenu() {
@@ -36,7 +38,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 };
                 if (!item.id || !item.category || !item.name || isNaN(item.price) || !item.image_url) return null;
                 return item;
-            }).filter(Boolean);
+            }).filter(Boolean); // Убираем все null (некорректные строки)
             
             renderCategories();
         } catch (error) {
@@ -72,7 +74,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 <button id="back-to-categories-btn">←</button>
                 <h2>${title}</h2>
             </div>
-            <div class="grid-container">`;
+            <div class="grid-container">`; // Используем ту же сетку
         items.forEach(item => {
             const quantity = cart[item.id] || 0;
             html += `
@@ -144,8 +146,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 webApp.MainButton.setText(`Оформить заказ (${totalPrice} ${CURRENCY})`);
                 webApp.MainButton.show();
             }
+            checkoutBtn.style.display = 'block'; // Показываем кнопку в модальном окне
         } else {
             if(webApp) webApp.MainButton.hide();
+            checkoutBtn.style.display = 'none'; // Скрываем кнопку, если корзина пуста
         }
     }
     
@@ -186,6 +190,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // --- ОБРАБОТЧИКИ СОБЫТИЙ ---
     function attachEventListeners() {
+        // Клик по карточке категории
         document.querySelectorAll('.category-card').forEach(card => {
             card.addEventListener('click', () => {
                 const category = card.dataset.category;
@@ -193,6 +198,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 renderItems(items, category);
             });
         });
+        // Кнопка "назад"
         const backBtn = document.getElementById('back-to-categories-btn');
         if (backBtn) backBtn.addEventListener('click', renderCategories);
     }
@@ -227,21 +233,40 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     // --- ОТПРАВКА ЗАКАЗА ---
-    if (webApp) {
-        webApp.onEvent('mainButtonClicked', function () {
-            const orderData = { cart: {}, totalPrice: 0, userInfo: webApp.initDataUnsafe.user };
-            let total = 0;
-            Object.keys(cart).forEach(id => {
-                const item = menuData.find(m => m.id === id);
-                if (item) {
-                    orderData.cart[item.name] = { quantity: cart[id], price: item.price };
-                    total += item.price * cart[id];
-                }
-            });
-            orderData.totalPrice = total;
-            webApp.sendData(JSON.stringify(orderData));
+    function handleCheckout() {
+        const totalItems = Object.keys(cart).reduce((sum, id) => sum + cart[id], 0);
+        if (totalItems === 0) {
+            const message = "Ваша корзина пуста.";
+            if (webApp) webApp.showAlert(message); else alert(message);
+            return;
+        }
+
+        const orderData = { cart: {}, totalPrice: 0, userInfo: webApp ? webApp.initDataUnsafe.user : {} };
+        let total = 0;
+        Object.keys(cart).forEach(id => {
+            const item = menuData.find(m => m.id === id);
+            if (item) {
+                orderData.cart[item.name] = { quantity: cart[id], price: item.price };
+                total += item.price * cart[id];
+            }
         });
+        orderData.totalPrice = total;
+        
+        if (webApp && webApp.sendData) {
+            webApp.sendData(JSON.stringify(orderData));
+        } else {
+            console.log("Эмуляция отправки заказа:", orderData);
+            alert("Заказ отправлен (эмуляция)!");
+        }
     }
+    
+    // Назначаем обработчик на обе кнопки
+    checkoutBtn.addEventListener('click', handleCheckout);
+    if (webApp) {
+        webApp.onEvent('mainButtonClicked', handleCheckout);
+        checkoutBtn.style.display = 'none'; // В Telegram используем MainButton, скрываем эту
+    }
+
 
     // --- ИНИЦИАЛИЗАЦИЯ ---
     if(webApp) webApp.expand();

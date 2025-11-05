@@ -7,7 +7,7 @@
     --accent-color: #007aff;         /* Яркий синий, как акцент */
     --border-color: #d2d2d7;       /* Светлый цвет для разделителей */
     --border-radius: 14px;
-    --gap: 12px; /* Уменьшаем отступы для компактности */
+    --gap: 12px;
 }
 
 body {
@@ -16,7 +16,7 @@ body {
     padding: var(--gap);
     background-color: var(--primary-bg-color);
     color: var(--text-color-primary);
-    padding-bottom: 80px; /* Добавляем отступ снизу для плавающей кнопки */
+    padding-bottom: 80px; /* Отступ снизу для плавающей кнопки */
 }
 
 .container { max-width: 100%; margin: 0 auto; }
@@ -95,7 +95,7 @@ body {
     gap: var(--gap);
 }
 
-/* --- Карточки категорий (уменьшены) --- */
+/* --- Карточки категорий --- */
 .category-card {
     position: relative;
     border-radius: var(--border-radius);
@@ -117,18 +117,18 @@ body {
     bottom: 0;
     left: 0;
     right: 0;
-    padding: 20px 8px 8px; /* Смещаем текст чуть выше */
+    padding: 20px 8px 8px;
     background: linear-gradient(to top, rgba(0,0,0,0.7), transparent);
 }
 .category-card p {
     margin: 0;
-    font-size: 16px; /* Увеличиваем шрифт */
+    font-size: 15px;
     font-weight: 700;
     color: #ffffff;
     text-align: center;
 }
 
-/* --- Карточки товаров (уменьшены) --- */
+/* --- Карточки товаров --- */
 .item-card {
     display: flex;
     flex-direction: column;
@@ -154,7 +154,7 @@ body {
     font-size: 14px;
     font-weight: 600;
     margin: 0 0 5px 0;
-    flex-grow: 1; /* Чтобы длинные названия не ломали верстку */
+    flex-grow: 1;
 }
 
 /* --- Кнопки +/- на карточках товаров --- */
@@ -258,4 +258,18 @@ body {
 }
 .cart-item-card .item-image { width: 50px; height: 50px; border-radius: 8px; flex-shrink: 0; background-size: cover; background-position: center; }
 .cart-item-card .item-info { flex-grow: 1; text-align: left; }
-.cart-item-card .item-info p { font-size: 14px; }
+.cart-item-card .item-info p { font-size: 14px; margin: 0; }
+
+/* --- Новая кнопка "Оформить заказ" в модальном окне --- */
+#checkout-btn {
+    width: 100%;
+    padding: 15px;
+    font-size: 16px;
+    font-weight: 600;
+    border: none;
+    background-color: var(--accent-color);
+    color: #ffffff;
+    border-radius: var(--border-radius);
+    margin-top: var(--gap);
+    cursor: pointer;
+}
