@@ -1,6 +1,5 @@
 document.addEventListener('DOMContentLoaded', function () {
-    // Безопасно инициализируем WebApp
-    const webApp = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
+    const webApp = window.Telegram.WebApp;
 
     // --- НАСТРОЙКИ ---
     // ⚠️ ВСТАВЬТЕ СЮДА ВАШУ CSV-ССЫЛКУ ИЗ GOOGLE SHEETS
@@ -8,17 +7,15 @@ document.addEventListener('DOMContentLoaded', function () {
     const CURRENCY = '₽';
 
     // --- Глобальные переменные ---
-    let menuData = []; // Единый массив для всех блюд
-    const cart = {}; // Корзина
+    let menuData = [];
+    const cart = {};
     const contentContainer = document.getElementById('content-container');
-    
-    // --- Элементы UI ---
     const searchInput = document.getElementById('search-input');
     const floatingCartBtn = document.getElementById('floating-cart-btn');
     const modalOverlay = document.getElementById('cart-modal');
     const closeModalBtn = document.getElementById('close-modal-btn');
 
-    // --- ФУНКЦИЯ ЗАГРУЗКИ МЕНЮ ---
+    // --- ЗАГРУЗКА И ОБРАБОТКА ДАННЫХ ---
     async function loadMenu() {
         try {
             contentContainer.innerHTML = '<p style="text-align:center;">Загрузка меню...</p>';
@@ -31,16 +28,12 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (columns.length < 5) return null;
                 const clean = columns.map(c => c.trim().replace(/^"|"$/g, ''));
                 const item = {
-                    id: clean[0], 
-                    category: clean[1], 
-                    name: clean[2],
-                    price: parseFloat(clean[3]), 
-                    image_url: clean[4]
+                    id: clean[0], category: clean[1], name: clean[2],
+                    price: parseFloat(clean[3]), image_url: clean[4]
                 };
-                // Пропускаем строки с некорректными данными
                 if (!item.id || !item.category || !item.name || isNaN(item.price) || !item.image_url) return null;
                 return item;
-            }).filter(Boolean); // Убираем все null (некорректные строки)
+            }).filter(Boolean);
             
             renderCategories();
         } catch (error) {
@@ -52,13 +45,11 @@ document.addEventListener('DOMContentLoaded', function () {
     // --- ФУНКЦИИ ОТОБРАЖЕНИЯ (РЕНДЕРИНГА) ---
     function renderCategories() {
         const categories = menuData.reduce((acc, item) => {
-            if (!acc[item.category]) {
-                acc[item.category] = item.image_url;
-            }
+            if (!acc[item.category]) acc[item.category] = item.image_url;
             return acc;
         }, {});
 
-        let html = '<div id="category-grid">';
+        let html = '<div class="grid-container">';
         for (const cat in categories) {
             html += `
                 <div class="category-card" data-category="${cat}">
@@ -76,22 +67,23 @@ document.addEventListener('DOMContentLoaded', function () {
                 <button id="back-to-categories-btn">←</button>
                 <h2>${title}</h2>
             </div>
-            <ul class="items-list">`;
+            <div class="grid-container">`; // Используем ту же сетку
         items.forEach(item => {
             html += `
-                <li class="menu-item">
+                <div class="item-card">
+                    <div class="item-image" style="background-image: url('${item.image_url}')"></div>
                     <div class="item-info">
-                        <p>${item.name}</p>
-                        <p class="item-price">${item.price} ${CURRENCY}</p>
+                        <p class="item-name">${item.name}</p>
+                        <div style="display:flex; justify-content: space-between; align-items: center; margin-top: 10px;">
+                            <span class="item-price">${item.price} ${CURRENCY}</span>
+                            <div class="item-controls">
+                                <button class="btn-plus-item" data-id="${item.id}">+</button>
+                            </div>
+                        </div>
                     </div>
-                    <div class="item-controls">
-                        <button class="btn-minus" data-id="${item.id}">-</button>
-                        <span id="quantity-${item.id}">${cart[item.id] || 0}</span>
-                        <button class="btn-plus" data-id="${item.id}">+</button>
-                    </div>
-                </li>`;
+                </div>`;
         });
-        html += '</ul>';
+        html += '</div>';
         showContent(html);
     }
 
@@ -113,11 +105,13 @@ document.addEventListener('DOMContentLoaded', function () {
             if (!item || quantity <= 0) return;
             totalItems += quantity;
             totalPrice += item.price * quantity;
-            const li = document.createElement('li');
-            li.className = 'menu-item';
+            const li = document.createElement('div');
+            li.className = 'cart-item-card';
             li.innerHTML = `
+                <div class="item-image" style="background-image: url('${item.image_url}')"></div>
                 <div class="item-info">
                     <p>${item.name}</p>
+                    <p class="item-price">${item.price * quantity} ${CURRENCY}</p>
                 </div>
                 <div class="item-controls">
                     <button class="btn-minus" data-id="${item.id}">-</button>
@@ -128,48 +122,37 @@ document.addEventListener('DOMContentLoaded', function () {
         });
 
         if (totalItems === 0) {
-            cartItemsList.innerHTML = '<p id="empty-cart-message">Корзина пуста</p>';
+            cartItemsList.innerHTML = '<p id="empty-cart-message">Ваша корзина пуста</p>';
         }
 
         cartTotalPriceEl.innerText = `${totalPrice} ${CURRENCY}`;
         document.getElementById('floating-cart-text').innerText = `Корзина (${totalItems})`;
+        
+        floatingCartBtn.style.display = 'flex'; // Кнопка видна всегда
 
         if (totalItems > 0) {
-            floatingCartBtn.classList.add('visible');
-            floatingCartBtn.classList.remove('hidden');
-            if(webApp) {
-                webApp.MainButton.setText(`Оформить заказ (${totalPrice} ${CURRENCY})`);
-                webApp.MainButton.show();
-            }
+            webApp.MainButton.setText(`Оформить заказ (${totalPrice} ${CURRENCY})`);
+            webApp.MainButton.show();
         } else {
-            floatingCartBtn.classList.add('hidden');
-            floatingCartBtn.classList.remove('visible');
-            if(webApp) webApp.MainButton.hide();
+            webApp.MainButton.hide();
         }
     }
     
     // --- ЛОГИКА КОРЗИНЫ ---
     function addToCart(id) {
         cart[id] = (cart[id] || 0) + 1;
-        updateItemQuantity(id);
         updateCartView();
     }
     function removeFromCart(id) {
         if (cart[id]) {
             cart[id]--;
             if (cart[id] <= 0) delete cart[id];
-            updateItemQuantity(id);
             updateCartView();
         }
-    }
-    function updateItemQuantity(id) {
-        const el = document.getElementById(`quantity-${id}`);
-        if (el) el.innerText = cart[id] || 0;
     }
 
     // --- ОБРАБОТЧИКИ СОБЫТИЙ ---
     function attachEventListeners() {
-        // Клик по карточке категории
         document.querySelectorAll('.category-card').forEach(card => {
             card.addEventListener('click', () => {
                 const category = card.dataset.category;
@@ -177,13 +160,11 @@ document.addEventListener('DOMContentLoaded', function () {
                 renderItems(items, category);
             });
         });
-
-        // Кнопка "назад"
         const backBtn = document.getElementById('back-to-categories-btn');
         if (backBtn) backBtn.addEventListener('click', renderCategories);
     }
     
-    // Поиск
+    // "Умный" Поиск
     searchInput.addEventListener('input', (e) => {
         const query = e.target.value.toLowerCase().trim();
         if (query.length > 1) {
@@ -197,9 +178,9 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
     
-    // Делегирование кликов для кнопок +/- (на всем документе)
+    // Делегирование кликов для всех кнопок +/-
     document.body.addEventListener('click', e => {
-        const plus = e.target.closest('.btn-plus');
+        const plus = e.target.closest('.btn-plus, .btn-plus-item');
         const minus = e.target.closest('.btn-minus');
         if (plus) addToCart(plus.dataset.id);
         if (minus) removeFromCart(minus.dataset.id);
@@ -213,23 +194,23 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     // --- ОТПРАВКА ЗАКАЗА ---
-    if (webApp) {
-        webApp.onEvent('mainButtonClicked', function () {
-            const orderData = { cart: {}, totalPrice: 0, userInfo: webApp.initDataUnsafe.user };
-            let total = 0;
-            Object.keys(cart).forEach(id => {
-                const item = menuData.find(m => m.id === id);
-                if (item) {
-                    orderData.cart[item.name] = { quantity: cart[id], price: item.price };
-                    total += item.price * cart[id];
-                }
-            });
-            orderData.totalPrice = total;
-            webApp.sendData(JSON.stringify(orderData));
+    webApp.onEvent('mainButtonClicked', function () {
+        // ... (здесь будет логика отправки заказа, как мы делали раньше: webApp.sendData(...))
+        const orderData = { cart: {}, totalPrice: 0, userInfo: webApp.initDataUnsafe.user };
+        let total = 0;
+        Object.keys(cart).forEach(id => {
+            const item = menuData.find(m => m.id === id);
+            if (item) {
+                orderData.cart[item.name] = { quantity: cart[id], price: item.price };
+                total += item.price * cart[id];
+            }
         });
-    }
+        orderData.totalPrice = total;
+        webApp.sendData(JSON.stringify(orderData));
+    });
 
     // --- ИНИЦИАЛИЗАЦИЯ ---
-    if(webApp) webApp.expand();
+    webApp.expand();
     loadMenu();
+    updateCartView(); // Первоначальный вызов для отображения кнопки
 });

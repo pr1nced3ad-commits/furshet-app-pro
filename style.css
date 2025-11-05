@@ -1,11 +1,11 @@
 /* --- Глобальные стили, переменные и шрифт --- */
 :root {
-    --tg-bg-color: #f4f4f4;
-    --tg-text-color: #222222;
-    --tg-hint-color: #8e8e93;
-    --tg-button-color: #007aff;
-    --tg-button-text-color: #ffffff;
-    --tg-secondary-bg-color: #ffffff;
+    --primary-bg-color: #ffffff;    /* Белый фон */
+    --secondary-bg-color: #f5f5f7;  /* Очень светлый серый для карточек */
+    --text-color-primary: #1d1d1f;   /* Почти черный для заголовков */
+    --text-color-secondary: #515154;/* Серый для описаний */
+    --accent-color: #007aff;         /* Яркий синий, как акцент */
+    --border-color: #d2d2d7;       /* Светлый цвет для разделителей */
     --border-radius: 14px;
     --gap: 15px;
 }
@@ -14,12 +14,8 @@ body {
     font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     margin: 0;
     padding: var(--gap);
-    background-color: var(--tg-bg-color);
-    color: var(--tg-text-color);
-    background-image: url('background.jpg');
-    background-size: cover;
-    background-position: center;
-    background-attachment: fixed;
+    background-color: var(--primary-bg-color);
+    color: var(--text-color-primary);
 }
 .container { max-width: 100%; margin: 0 auto; }
 
@@ -33,8 +29,8 @@ body {
 .logo {
     width: 60px;
     height: 60px;
-    border-radius: 50%; /* Круглый логотип */
-    object-fit: cover; /* Изображение не искажается */
+    border-radius: 50%;
+    object-fit: cover;
     flex-shrink: 0;
 }
 .header-title {
@@ -47,38 +43,27 @@ body {
 
 /* --- Поиск --- */
 .search-container {
-    position: sticky;
-    top: var(--gap);
-    background-color: transparent;
-    padding: 10px 0;
-    z-index: 10;
-    display: flex;
-    justify-content: flex-end;
+    margin: 20px auto;
+    width: 90%;
+    max-width: 400px;
 }
 #search-input {
-    width: 50px; /* Изначально узкий */
-    padding: 12px 15px;
+    width: 100%;
+    padding: 12px 20px;
     font-size: 16px;
-    border: none;
-    background-color: var(--tg-secondary-bg-color);
-    color: var(--tg-text-color);
-    border-radius: 25px; /* Более круглые края */
+    border: 1px solid var(--border-color);
+    background-color: var(--secondary-bg-color);
+    color: var(--text-color-primary);
+    border-radius: 25px;
     box-sizing: border-box;
-    transition: all 0.4s ease-in-out;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="%238e8e93" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>');
-    background-repeat: no-repeat;
-    background-position: center;
-    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: center;
 }
+#search-input::placeholder { color: var(--text-color-secondary); }
 #search-input:focus {
-    width: 100%; /* Расширяется при нажатии */
-    background-position: 15px center;
-    padding-left: 45px;
-    cursor: text;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    border-color: var(--accent-color);
 }
-#search-input::placeholder { color: transparent; }
-#search-input:focus::placeholder { color: var(--tg-hint-color); }
 
 /* --- Разделитель "Меню" --- */
 .section-divider {
@@ -86,36 +71,39 @@ body {
     align-items: center;
     text-align: center;
     margin: 25px 0;
-    color: var(--tg-hint-color);
+    color: var(--text-color-secondary);
 }
 .section-divider::before, .section-divider::after {
     content: '';
     flex: 1;
-    border-bottom: 1px solid rgba(142, 142, 147, 0.3);
+    border-bottom: 1px solid var(--border-color);
 }
 .section-divider span {
     padding: 0 15px;
     font-size: 14px;
     font-weight: 600;
     text-transform: uppercase;
+    letter-spacing: 1px;
 }
 
-/* --- Сетка категорий --- */
-#category-grid {
+/* --- Сетка категорий и товаров --- */
+.grid-container {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: var(--gap);
 }
-.category-card {
+.category-card, .item-card {
     position: relative;
     border-radius: var(--border-radius);
     overflow: hidden;
-    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
     cursor: pointer;
     transition: transform 0.2s ease;
-    aspect-ratio: 4 / 3; /* Соотношение сторон 4:3 */
+    background-color: var(--secondary-bg-color);
 }
-.category-card:active { transform: scale(0.96); }
+.category-card:active, .item-card:active { transform: scale(0.96); }
+
+.category-card { aspect-ratio: 4 / 3; }
 .category-card .image-container {
     width: 100%;
     height: 100%;
@@ -127,22 +115,31 @@ body {
     bottom: 0;
     left: 0;
     right: 0;
-    padding: 15px 10px;
+    padding: 20px 10px 10px;
     background: linear-gradient(to top, rgba(0,0,0,0.7), transparent);
 }
 .category-card p {
     margin: 0;
+    font-size: 15px;
     font-weight: 700;
     color: #ffffff;
     text-align: center;
 }
 
-/* --- Список блюд --- */
-.items-list { list-style: none; padding: 0; margin: 0; }
-.menu-item { /* ... стили остались прежними ... */ }
-.item-info p { margin: 0; font-weight: 600; }
-.item-price { font-size: 14px; color: var(--tg-hint-color); margin-top: 4px; }
-.item-controls { /* ... стили остались прежними ... */ }
+.item-card {
+    display: flex;
+    flex-direction: column;
+    text-align: left;
+}
+.item-card .item-image {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    background-size: cover;
+    background-position: center;
+}
+.item-info { padding: 12px; flex-grow: 1; display: flex; flex-direction: column; }
+.item-info .item-name { font-weight: 600; margin: 0 0 5px 0; flex-grow: 1; }
+.item-info .item-price { font-size: 16px; font-weight: 700; color: var(--accent-color); }
 
 /* --- Плавающая кнопка корзины --- */
 #floating-cart-btn {
@@ -150,13 +147,13 @@ body {
     bottom: 20px;
     left: 50%;
     transform: translateX(-50%);
-    padding: 12px 20px;
-    background-color: var(--tg-button-color);
-    color: var(--tg-button-text-color);
+    padding: 12px 25px;
+    background-color: var(--accent-color);
+    color: #ffffff;
     border-radius: 25px;
     font-size: 16px;
     font-weight: 600;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.25);
+    box-shadow: 0 4px 15px rgba(0, 122, 255, 0.4);
     cursor: pointer;
     transition: all 0.3s ease;
     z-index: 20;
@@ -166,23 +163,26 @@ body {
 }
 
 /* --- Модальное окно корзины --- */
-.modal-overlay { /* ... стили остались прежними ... */ }
+.modal-overlay { /* ... */ }
 .modal-content {
-    background-color: var(--tg-bg-color);
-    background-image: url('background.jpg');
-    background-size: cover;
-    background-position: center;
-    background-attachment: fixed;
-    /* ... остальные стили ... */
+    background-color: var(--primary-bg-color);
+    /* ... */
 }
-.modal-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: var(--gap);
-}
+.modal-header { /* ... */ }
 .logo-modal { width: 40px; height: 40px; border-radius: 50%; }
 .modal-header h2 { font-size: 20px; margin: 0; }
-#close-modal-btn { font-size: 28px; background: none; border: none; color: var(--tg-hint-color); cursor: pointer; }
-#cart-items-list { /* ... стили остались прежними ... */ }
-.total-line { /* ... стили остались прежними ... */ }
+#close-modal-btn { font-size: 28px; background: none; border: none; color: var(--text-color-secondary); cursor: pointer; }
+#cart-items-list { /* ... */ }
+.total-line { /* ... */ }
+#empty-cart-message { color: var(--text-color-secondary); text-align: center; padding: 20px; }
+/* Стили для маленьких карточек в корзине */
+.cart-item-card {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border-color);
+}
+.cart-item-card .item-image { width: 50px; height: 50px; border-radius: 8px; flex-shrink: 0; }
+.cart-item-card .item-info { flex-grow: 1; }
+.cart-item-card .item-controls { /* ... */ }
