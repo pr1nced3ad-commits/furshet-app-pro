@@ -15,43 +15,45 @@ document.addEventListener('DOMContentLoaded', function () {
     const modalOverlay = document.getElementById('cart-modal');
     const closeModalBtn = document.getElementById('close-modal-btn');
 
-    // --- ФУНКЦИЯ ЗАГРУЗКИ МЕНЮ (ИСПРАВЛЕНА) ---
+    // --- ЗАГРУЗКА И ОБРАБОТКА ДАННЫХ ---
     async function loadMenu() {
         try {
             contentContainer.innerHTML = '<p style="text-align:center;">Загрузка меню...</p>';
             const response = await fetch(GOOGLE_SHEET_CSV_URL);
             if (!response.ok) throw new Error('Network response was not ok');
             const csvText = await response.text();
-            const rows = csvText.split('\n').slice(1);
-            menuData = rows.map(row => {
+            
+            menuData = csvText.split('\n').slice(1).map(row => {
                 const columns = row.match(/(".*?"|[^",]+)(?=\s*,|\s*$)/g) || [];
                 if (columns.length < 5) return null;
                 const clean = columns.map(c => c.trim().replace(/^"|"$/g, ''));
                 const item = {
-                    id: clean[0], category: clean[1], name: clean[2],
-                    price: parseFloat(clean[3]), image_url: clean[4]
+                    id: clean[0], 
+                    category: clean[1], 
+                    name: clean[2],
+                    price: parseFloat(clean[3]), 
+                    image_url: clean[4]
                 };
-                if (item.id && item.category && item.name && !isNaN(item.price) && item.image_url) {
-                    return item;
-                }
-                return null;
+                if (!item.id || !item.category || !item.name || isNaN(item.price) || !item.image_url) return null;
+                return item;
             }).filter(Boolean);
-            
-            if (menuData.length === 0) throw new Error('Menu data is empty or invalid');
             
             renderCategories();
         } catch (error) {
             console.error('Failed to load menu:', error);
-            contentContainer.innerHTML = '<p style="color:red;text-align:center;">Ошибка загрузки меню. Проверьте ссылку в Google Таблицах.</p>';
+            contentContainer.innerHTML = '<p style="color:red;text-align:center;">Ошибка загрузки меню.</p>';
         }
     }
 
     // --- ФУНКЦИИ ОТОБРАЖЕНИЯ (РЕНДЕРИНГА) ---
     function renderCategories() {
         const categories = menuData.reduce((acc, item) => {
-            if (!acc[item.category]) acc[item.category] = item.image_url;
+            if (item.category && !acc[item.category]) {
+                acc[item.category] = item.image_url;
+            }
             return acc;
         }, {});
+
         let html = '<div class="grid-container">';
         for (const cat in categories) {
             html += `
@@ -70,40 +72,36 @@ document.addEventListener('DOMContentLoaded', function () {
                 <button id="back-to-categories-btn">←</button>
                 <h2>${title}</h2>
             </div>
-            <div class="grid-container item-grid">`;
+            <div class="grid-container">`;
         items.forEach(item => {
             const quantity = cart[item.id] || 0;
-            const controlsHtml = quantity > 0
-                ? `<div class="controls-wrapper">
-                       <button class="btn-minus" data-id="${item.id}">-</button>
-                       <span>${quantity}</span>
-                       <button class="btn-plus" data-id="${item.id}">+</button>
-                   </div>`
-                : `<div class="controls-wrapper">
-                       <button class="btn-plus-item btn-add-single" data-id="${item.id}">+</button>
-                   </div>`;
-
             html += `
                 <div class="item-card">
                     <div class="item-image" style="background-image: url('${item.image_url}')"></div>
                     <div class="item-info">
                         <p class="item-name">${item.name}</p>
-                        <div class="price-controls-wrapper">
-                            <span class="item-price">${item.price} ${CURRENCY}</span>
-                            <div class="item-controls" id="controls-for-${item.id}">${controlsHtml}</div>
-                        </div>
-                    </div>
-                </div>`;
+                        <div class="item-controls" id="controls-${item.id}">`;
+            if (quantity > 0) {
+                html += `
+                    <div class="counter">
+                        <button class="btn-minus" data-id="${item.id}">-</button>
+                        <span>${quantity}</span>
+                        <button class="btn-plus" data-id="${item.id}">+</button>
+                    </div>`;
+            } else {
+                html += `<button class="btn-plus-item" data-id="${item.id}">${item.price} ${CURRENCY}</button>`;
+            }
+            html += `</div></div></div>`;
         });
         html += '</div>';
         showContent(html);
     }
-    
+
     function showContent(html) {
         contentContainer.innerHTML = html;
         attachEventListeners();
     }
-    
+
     function updateCartView() {
         const cartItemsList = document.getElementById('cart-items-list');
         const cartTotalPriceEl = document.getElementById('cart-total-price');
@@ -121,7 +119,9 @@ document.addEventListener('DOMContentLoaded', function () {
             li.className = 'cart-item-card';
             li.innerHTML = `
                 <div class="item-image" style="background-image: url('${item.image_url}')"></div>
-                <div class="item-info"><p>${item.name}</p></div>
+                <div class="item-info">
+                    <p>${item.name}</p>
+                </div>
                 <div class="item-controls">
                     <button class="btn-minus" data-id="${item.id}">-</button>
                     <span>${quantity}</span>
@@ -137,13 +137,15 @@ document.addEventListener('DOMContentLoaded', function () {
         cartTotalPriceEl.innerText = `${totalPrice} ${CURRENCY}`;
         document.getElementById('floating-cart-text').innerText = `Корзина (${totalItems})`;
         
-        if (webApp) {
-            if (totalItems > 0) {
+        floatingCartBtn.style.display = 'flex';
+
+        if (totalItems > 0) {
+            if(webApp) {
                 webApp.MainButton.setText(`Оформить заказ (${totalPrice} ${CURRENCY})`);
                 webApp.MainButton.show();
-            } else {
-                webApp.MainButton.hide();
             }
+        } else {
+            if(webApp) webApp.MainButton.hide();
         }
     }
     
@@ -161,17 +163,25 @@ document.addEventListener('DOMContentLoaded', function () {
             updateCartView();
         }
     }
+    
+    // Обновляет ОДНУ карточку товара, превращая кнопку "+" в счетчик и обратно
     function updateItemControls(id) {
-        const controlsContainer = document.getElementById(`controls-for-${id}`);
-        if (!controlsContainer) return;
+        const controlsDiv = document.getElementById(`controls-${id}`);
+        if (!controlsDiv) return;
         const quantity = cart[id] || 0;
-        let controlsHtml = '';
+        const item = menuData.find(m => m.id === id);
+        if (!item) return;
+
         if (quantity > 0) {
-            controlsHtml = `<div class="controls-wrapper"><button class="btn-minus" data-id="${id}">-</button><span>${quantity}</span><button class="btn-plus" data-id="${id}">+</button></div>`;
+            controlsDiv.innerHTML = `
+                <div class="counter">
+                    <button class="btn-minus" data-id="${id}">-</button>
+                    <span>${quantity}</span>
+                    <button class="btn-plus" data-id="${id}">+</button>
+                </div>`;
         } else {
-            controlsHtml = `<div class="controls-wrapper"><button class="btn-plus-item btn-add-single" data-id="${id}">+</button></div>`;
+            controlsDiv.innerHTML = `<button class="btn-plus-item" data-id="${id}">${item.price} ${CURRENCY}</button>`;
         }
-        controlsContainer.innerHTML = controlsHtml;
     }
 
     // --- ОБРАБОТЧИКИ СОБЫТИЙ ---
@@ -201,7 +211,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
     
-    // Делегирование кликов для кнопок +/-
+    // Делегирование кликов для всех кнопок +/- (на всем документе)
     document.body.addEventListener('click', e => {
         const plus = e.target.closest('.btn-plus, .btn-plus-item');
         const minus = e.target.closest('.btn-minus');

@@ -4,37 +4,56 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Крендель Фуршет Меню</title>
+    
+    <!-- Подключаем современный шрифт от Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=ULTRA_FINAL">
+    
+    <!-- Подключаем стили с финальной версией для сброса кэша -->
+    <link rel="stylesheet" href="style.css?v=DESIGNER_FINAL_V2">
 </head>
 <body>
     <div class="container">
+        <!-- Шапка с логотипом и названием -->
         <header class="app-header">
             <img src="logo.png" alt="Логотип" class="logo">
             <h1 class="header-title">Крендель<br>Фуршет Меню</h1>
         </header>
+
+        <!-- Поиск -->
         <div class="search-container">
             <input type="text" id="search-input" placeholder="🔍 Найти блюдо...">
         </div>
+        
+        <!-- Разделитель -->
         <div class="section-divider">
             <span>Меню</span>
         </div>
-        <main id="content-container"></main>
+
+        <!-- Контейнер для динамического контента (категории или товары) -->
+        <main id="content-container">
+            <!-- Сюда JavaScript будет подгружать категории или результаты поиска -->
+        </main>
     </div>
+    
+    <!-- Плавающая кнопка корзины -->
     <div id="floating-cart-btn">
         <span>🛒</span>
         <span id="floating-cart-text">Корзина</span>
     </div>
+
+    <!-- Модальное окно корзины (изначально скрыто) -->
     <div id="cart-modal" class="modal-overlay hidden">
         <div class="modal-content">
             <div class="modal-header">
                 <img src="logo.png" alt="Логотип" class="logo-modal">
-                <h2>Ваш заказ</h2>
                 <button id="close-modal-btn">×</button>
             </div>
-            <div id="cart-items-list"></div>
+            <h2>Ваш заказ</h2>
+            <div id="cart-items-list">
+                <!-- Сюда будут добавляться товары в корзине -->
+            </div>
             <div class="modal-footer">
                 <div class="total-line">
                     <span>Итого:</span>
@@ -43,7 +62,9 @@
             </div>
         </div>
     </div>
+
+    <!-- Подключаем скрипты -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <script src="script.js?v=ULTRA_FINAL"></script> 
+    <script src="script.js?v=DESIGNER_FINAL_V2"></script> 
 </body>
 </html>
