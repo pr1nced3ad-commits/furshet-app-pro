@@ -3,7 +3,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // --- НАСТРОЙКИ ---
     // ⚠️ ВСТАВЬТЕ СЮДА ВАШУ CSV-ССЫЛКУ ИЗ GOOGLE SHEETS
-    const GOOGLE_SHEET_CSV_URL = 'ССЫЛКА_ИЗ_GOOGLE_ТАБЛИЦЫ';
+    const GOOGLE_SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vS9X0GUMusSveT9KojVe4g2EhG3C_MTsEzjfnEkDLyc0fhO56Z8ALs0jX1c-0ffuyXo2vkO1vdD8ank/pub?gid=0&single=true&output=csv';
     const CURRENCY = '₽';
 
     // --- Глобальные переменные ---
