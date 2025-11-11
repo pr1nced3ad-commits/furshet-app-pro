@@ -1,9 +1,9 @@
-// === script.js (ФИНАЛЬНАЯ ВЕРСИЯ С "ЗАПАСНЫМИ" КАРТИНКАМИ) ===
 document.addEventListener('DOMContentLoaded', function () {
+    // Безопасно инициализируем WebApp, чтобы код не "падал" в обычном браузере
     const webApp = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
 
     // --- НАСТРОЙКИ ---
-    // ⚠️ ВСТАВЬТЕ СЮДА ВАШУ CSV-ССЫЛКУ ИЗ GOOGLE SHEETS
+    //⚠️ ВСТАВЬТЕ СЮДА ВАШУ CSV-ССЫЛКУ ИЗ GOOGLE SHEETS
     const GOOGLE_SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vS9X0GUMusSveT9KojVe4g2EhG3C_MTsEzjfnEkDLyc0fhO56Z8ALs0jX1c-0ffuyXo2vkO1vdD8ank/pub?output=csv';
     const CURRENCY = '₽';
 
@@ -27,7 +27,6 @@ document.addEventListener('DOMContentLoaded', function () {
             
             menuData = csvText.split('\n').slice(1).map(row => {
                 const columns = row.match(/(".*?"|[^",]+)(?=\s*,|\s*$)/g) || [];
-                // Теперь нам достаточно 5 обязательных колонок
                 if (columns.length < 5) return null;
                 const clean = columns.map(c => c.trim().replace(/^"|"$/g, ''));
                 const item = {
@@ -35,17 +34,16 @@ document.addEventListener('DOMContentLoaded', function () {
                     category: clean[1], 
                     name: clean[2],
                     price: parseFloat(clean[3]), 
-                    category_image: clean[4],
-                    // item_image_url теперь необязательный. Если 6-й колонки нет, будет пустая строка.
-                    item_image_url: clean[5] || '' 
+                    image_url: clean[4]
                 };
-                // Проверяем только обязательные поля
-                if (!item.id || !item.category || !item.name || isNaN(item.price) || !item.category_image) return null;
+                if (!item.id || !item.category || !item.name || isNaN(item.price) || !item.image_url) return null;
                 return item;
             }).filter(Boolean);
             
             renderCategories();
-            updateAllDisplays(); // Обновляем корзину после загрузки
+            // Обновляем отображение корзины ПОСЛЕ того, как меню было загружено
+            updateAllDisplays();
+
         } catch (error) {
             console.error('Failed to load menu:', error);
             contentContainer.innerHTML = '<p style="color:red;text-align:center;">Ошибка загрузки меню.</p>';
@@ -56,7 +54,7 @@ document.addEventListener('DOMContentLoaded', function () {
     function renderCategories() {
         const categories = menuData.reduce((acc, item) => {
             if (item.category && !acc[item.category]) {
-                acc[item.category] = item.category_image;
+                acc[item.category] = item.image_url; // Используем первую картинку товара как картинку категории
             }
             return acc;
         }, {});
@@ -82,12 +80,9 @@ document.addEventListener('DOMContentLoaded', function () {
             <div class="grid-container">`;
         items.forEach(item => {
             const quantity = cart[item.id] || 0;
-            // Выбираем, какую картинку использовать: товара, если есть, или категории, если нет
-            const imageUrl = item.item_image_url ? item.item_image_url : item.category_image;
-
             html += `
                 <div class="item-card">
-                    <div class="item-image" style="background-image: url('${imageUrl}')"></div>
+                    <div class="item-image" style="background-image: url('${item.image_url}')"></div>
                     <div class="item-info">
                         <p class="item-name">${item.name}</p>
                         <div class="item-controls" id="controls-${item.id}">`;
@@ -111,32 +106,60 @@ document.addEventListener('DOMContentLoaded', function () {
         contentContainer.innerHTML = html;
         attachEventListeners();
     }
-
-    function updateAllDisplays() {
-        // ... (этот блок остается без изменений, как в последней рабочей версии) ...
-        let totalPrice = 0;
-        let totalItems = 0;
-        for (const category in menu) {
-            menu[category].forEach(item => {
-                const quantitySpan = document.getElementById(`quantity-${item.id}`);
-                const quantity = cart[item.id] || 0;
-                if (quantitySpan) quantitySpan.innerText = quantity;
-            });
+    
+    // --- ЛОГИКА КОРЗИНЫ И ОБНОВЛЕНИЯ ---
+    function addToCart(id) {
+        cart[id] = (cart[id] || 0) + 1;
+        updateAllDisplays();
+    }
+    function removeFromCart(id) {
+        if (cart[id]) {
+            cart[id]--;
+            if (cart[id] <= 0) delete cart[id];
+            updateAllDisplays();
         }
+    }
+    
+    function updateAllDisplays() {
+        // Обновляем счетчики на карточках товаров
+        menuData.forEach(item => {
+            const controlsDiv = document.getElementById(`controls-${item.id}`);
+            if (!controlsDiv) return;
+            const quantity = cart[item.id] || 0;
+            if (quantity > 0) {
+                if (!controlsDiv.querySelector('.counter')) {
+                    controlsDiv.innerHTML = `
+                        <div class="counter">
+                            <button class="btn-minus" data-id="${item.id}">-</button>
+                            <span>${quantity}</span>
+                            <button class="btn-plus" data-id="${item.id}">+</button>
+                        </div>`;
+                } else {
+                    controlsDiv.querySelector('span').innerText = quantity;
+                }
+            } else {
+                controlsDiv.innerHTML = `<button class="btn-plus-item" data-id="${item.id}">${item.price} ${CURRENCY}</button>`;
+            }
+        });
+
+        // Обновляем модальное окно корзины
         const cartItemsList = document.getElementById('cart-items-list');
+        const cartTotalPriceEl = document.getElementById('cart-total-price');
         cartItemsList.innerHTML = '';
+        let totalItems = 0;
+        let totalPrice = 0;
+
         Object.keys(cart).forEach(id => {
             const item = menuData.find(m => m.id === id);
             const quantity = cart[id];
             if (!item || quantity <= 0) return;
             totalItems += quantity;
             totalPrice += item.price * quantity;
-            const imageUrl = item.item_image_url ? item.item_image_url : item.category_image;
             const li = document.createElement('div');
             li.className = 'cart-item-card';
             li.innerHTML = `
-                <div class="item-image" style="background-image: url('${imageUrl}')"></div>
-                <div class="item-info"> <p>${item.name}</p> </div>
+                <div class="item-image" style="background-image: url('${item.image_url}')"></div>
+                <div class="item-info"><p>${item.name}</p></div>
                 <div class="item-controls">
                     <button class="btn-minus" data-id="${item.id}">-</button>
                     <span>${quantity}</span>
@@ -144,52 +167,22 @@ document.addEventListener('DOMContentLoaded', function () {
                 </div>`;
             cartItemsList.appendChild(li);
         });
+
         if (totalItems === 0) {
             cartItemsList.innerHTML = '<p id="empty-cart-message">Ваша корзина пуста</p>';
         }
-        document.getElementById('cart-total-price').innerText = `${totalPrice} ${CURRENCY}`;
+
+        cartTotalPriceEl.innerText = `${totalPrice} ${CURRENCY}`;
         document.getElementById('floating-cart-text').innerText = `Корзина (${totalItems})`;
+        
         floatingCartBtn.style.display = 'flex';
+
         if (totalItems > 0) {
             if (webApp) webApp.MainButton.show();
             checkoutBtn.style.display = 'block';
         } else {
             if (webApp) webApp.MainButton.hide();
             checkoutBtn.style.display = 'none';
-        }
-    }
-    
-    // --- ЛОГИКА КОРЗИНЫ ---
-    function addToCart(id) {
-        cart[id] = (cart[id] || 0) + 1;
-        updateItemControls(id);
-        updateAllDisplays();
-    }
-    function removeFromCart(id) {
-        if (cart[id]) {
-            cart[id]--;
-            if (cart[id] <= 0) delete cart[id];
-            updateItemControls(id);
-            updateAllDisplays();
-        }
-    }
-    
-    function updateItemControls(id) {
-        const controlsDiv = document.getElementById(`controls-${id}`);
-        if (!controlsDiv) return;
-        const quantity = cart[id] || 0;
-        const item = menuData.find(m => m.id === id);
-        if (!item) return;
-
-        if (quantity > 0) {
-            controlsDiv.innerHTML = `
-                <div class="counter">
-                    <button class="btn-minus" data-id="${id}">-</button>
-                    <span>${quantity}</span>
-                    <button class="btn-plus" data-id="${id}">+</button>
-                </div>`;
-        } else {
-            controlsDiv.innerHTML = `<button class="btn-plus-item" data-id="${id}">${item.price} ${CURRENCY}</button>`;
         }
     }
 
@@ -256,7 +249,7 @@ document.addEventListener('DOMContentLoaded', function () {
             webApp.sendData(JSON.stringify(orderData));
         } else {
             console.log("Эмуляция отправки заказа:", orderData);
-            alert("Заказ отправлен (эмуляция)!");
+            alert("Заказ отправлен (эмуляция)!\n" + JSON.stringify(orderData, null, 2));
         }
     }
     
@@ -267,7 +260,9 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // --- ИНИЦИАЛИЗАЦИЯ ---
-    if(webApp) webApp.expand();
+    if(webApp) {
+        webApp.expand();
+    }
     loadMenu();
-    updateAllDisplays();
+    updateAllDisplays(); // Вызываем один раз для инициализации корзины
 });
