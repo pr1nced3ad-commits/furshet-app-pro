@@ -1,3 +1,4 @@
+// === script.js (ФИНАЛЬНАЯ ВЕРСИЯ С КАРТИНКАМИ ТОВАРОВ) ===
 document.addEventListener('DOMContentLoaded', function () {
     const webApp = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
 
@@ -26,20 +27,25 @@ document.addEventListener('DOMContentLoaded', function () {
             
             menuData = csvText.split('\n').slice(1).map(row => {
                 const columns = row.match(/(".*?"|[^",]+)(?=\s*,|\s*$)/g) || [];
-                if (columns.length < 5) return null;
+                // --- ИЗМЕНЕНИЕ ЗДЕСЬ: Проверяем, что колонок теперь 6 ---
+                if (columns.length < 6) return null;
                 const clean = columns.map(c => c.trim().replace(/^"|"$/g, ''));
                 const item = {
                     id: clean[0], 
                     category: clean[1], 
                     name: clean[2],
                     price: parseFloat(clean[3]), 
-                    image_url: clean[4]
+                    category_image: clean[4],
+                    // --- ИЗМЕНЕНИЕ ЗДЕСЬ: Читаем новую, шестую колонку ---
+                    item_image_url: clean[5]
                 };
-                if (!item.id || !item.category || !item.name || isNaN(item.price) || !item.image_url) return null;
+                // Проверяем, что все данные корректны
+                if (!item.id || !item.category || !item.name || isNaN(item.price) || !item.category_image || !item.item_image_url) return null;
                 return item;
             }).filter(Boolean);
             
             renderCategories();
+            updateAllDisplays(); // Обновляем корзину после загрузки
         } catch (error) {
             console.error('Failed to load menu:', error);
             contentContainer.innerHTML = '<p style="color:red;text-align:center;">Ошибка загрузки меню.</p>';
@@ -50,7 +56,7 @@ document.addEventListener('DOMContentLoaded', function () {
     function renderCategories() {
         const categories = menuData.reduce((acc, item) => {
             if (item.category && !acc[item.category]) {
-                acc[item.category] = item.image_url;
+                acc[item.category] = item.category_image;
             }
             return acc;
         }, {});
@@ -78,7 +84,8 @@ document.addEventListener('DOMContentLoaded', function () {
             const quantity = cart[item.id] || 0;
             html += `
                 <div class="item-card">
-                    <div class="item-image" style="background-image: url('${item.image_url}')"></div>
+                    <!-- ИЗМЕНЕНИЕ ЗДЕСЬ: Используем уникальную картинку товара -->
+                    <div class="item-image" style="background-image: url('${item.item_image_url}')"></div>
                     <div class="item-info">
                         <p class="item-name">${item.name}</p>
                         <div class="item-controls" id="controls-${item.id}">`;
@@ -104,6 +111,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function updateCartView() {
+        // ... (этот код остается без изменений, как в вашей рабочей версии) ...
         const cartItemsList = document.getElementById('cart-items-list');
         const cartTotalPriceEl = document.getElementById('cart-total-price');
         cartItemsList.innerHTML = '';
@@ -119,7 +127,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const li = document.createElement('div');
             li.className = 'cart-item-card';
             li.innerHTML = `
-                <div class="item-image" style="background-image: url('${item.image_url}')"></div>
+                <div class="item-image" style="background-image: url('${item.item_image_url}')"></div>
                 <div class="item-info">
                     <p>${item.name}</p>
                 </div>
@@ -250,6 +258,11 @@ document.addEventListener('DOMContentLoaded', function () {
     
     // Назначаем обработчик на кнопку в модальном окне
     checkoutBtn.addEventListener('click', handleCheckout);
+    if (webApp) {
+        // Если мы в Telegram, то главной кнопкой становится MainButton
+        webApp.onEvent('mainButtonClicked', handleCheckout);
+        checkoutBtn.style.display = 'none'; // А эту скрываем
+    }
 
     // --- ИНИЦИАЛИЗАЦИЯ ---
     if(webApp) {
