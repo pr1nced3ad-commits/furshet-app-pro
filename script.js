@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function () {
-    // Безопасно инициализируем WebApp, чтобы код не "падал" в обычном браузере
+    // Безопасно инициализируем WebApp, чтобы код не "падал", если скрипт Telegram не загрузился
     const webApp = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
 
     // --- НАСТРОЙКИ ---
@@ -27,6 +27,7 @@ document.addEventListener('DOMContentLoaded', function () {
             
             menuData = csvText.split('\n').slice(1).map(row => {
                 const columns = row.match(/(".*?"|[^",]+)(?=\s*,|\s*$)/g) || [];
+                // Теперь нам достаточно 5 обязательных колонок
                 if (columns.length < 5) return null;
                 const clean = columns.map(c => c.trim().replace(/^"|"$/g, ''));
                 const item = {
@@ -34,16 +35,16 @@ document.addEventListener('DOMContentLoaded', function () {
                     category: clean[1], 
                     name: clean[2],
                     price: parseFloat(clean[3]), 
-                    image_url: clean[4]
+                    category_image: clean[4],
+                    // item_image_url теперь необязательный. Если 6-й колонки нет, будет пустая строка.
+                    item_image_url: clean[5] || '' 
                 };
-                if (!item.id || !item.category || !item.name || isNaN(item.price) || !item.image_url) return null;
+                if (!item.id || !item.category || !item.name || isNaN(item.price) || !item.category_image) return null;
                 return item;
             }).filter(Boolean);
             
             renderCategories();
-            // Обновляем отображение корзины ПОСЛЕ того, как меню было загружено
             updateAllDisplays();
-
         } catch (error) {
             console.error('Failed to load menu:', error);
             contentContainer.innerHTML = '<p style="color:red;text-align:center;">Ошибка загрузки меню.</p>';
@@ -54,11 +55,10 @@ document.addEventListener('DOMContentLoaded', function () {
     function renderCategories() {
         const categories = menuData.reduce((acc, item) => {
             if (item.category && !acc[item.category]) {
-                acc[item.category] = item.image_url; // Используем первую картинку товара как картинку категории
+                acc[item.category] = item.category_image;
             }
             return acc;
         }, {});
-
         let html = '<div class="grid-container">';
         for (const cat in categories) {
             html += `
@@ -80,9 +80,11 @@ document.addEventListener('DOMContentLoaded', function () {
             <div class="grid-container">`;
         items.forEach(item => {
             const quantity = cart[item.id] || 0;
+            // Выбираем, какую картинку использовать: товара, если есть, или категории, если нет
+            const imageUrl = item.item_image_url ? item.item_image_url : item.category_image;
             html += `
                 <div class="item-card">
-                    <div class="item-image" style="background-image: url('${item.image_url}')"></div>
+                    <div class="item-image" style="background-image: url('${imageUrl}')"></div>
                     <div class="item-info">
                         <p class="item-name">${item.name}</p>
                         <div class="item-controls" id="controls-${item.id}">`;
@@ -155,10 +157,11 @@ document.addEventListener('DOMContentLoaded', function () {
             if (!item || quantity <= 0) return;
             totalItems += quantity;
             totalPrice += item.price * quantity;
+            const imageUrl = item.item_image_url ? item.item_image_url : item.category_image;
             const li = document.createElement('div');
             li.className = 'cart-item-card';
             li.innerHTML = `
-                <div class="item-image" style="background-image: url('${item.image_url}')"></div>
+                <div class="item-image" style="background-image: url('${imageUrl}')"></div>
                 <div class="item-info"><p>${item.name}</p></div>
                 <div class="item-controls">
                     <button class="btn-minus" data-id="${item.id}">-</button>
@@ -264,5 +267,5 @@ document.addEventListener('DOMContentLoaded', function () {
         webApp.expand();
     }
     loadMenu();
-    updateAllDisplays(); // Вызываем один раз для инициализации корзины
+    updateAllDisplays();
 });
