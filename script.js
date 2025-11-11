@@ -1,10 +1,10 @@
-// === script.js (ФИНАЛЬНАЯ ВЕРСИЯ С КАРТИНКАМИ ТОВАРОВ) ===
+// === script.js (ФИНАЛЬНАЯ ВЕРСИЯ С "ЗАПАСНЫМИ" КАРТИНКАМИ) ===
 document.addEventListener('DOMContentLoaded', function () {
     const webApp = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
 
     // --- НАСТРОЙКИ ---
-    // ⚠️ Убедитесь, что здесь ваша правильная CSV-ссылка из Google Sheets
-    const GOOGLE_SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vS9X0GUMusSveT9KojVe4g2EhG3C_MTsEzjfnEkDLyc0fhO56Z8ALs0jX1c-0ffuyXo2vkO1vdD8ank/pub?gid=0&single=true&output=csv';
+    // ⚠️ ВСТАВЬТЕ СЮДА ВАШУ CSV-ССЫЛКУ ИЗ GOOGLE SHEETS
+    const GOOGLE_SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/1WeKlwho-IZgOoHDCqCmNdMRgOFwhceLjnCEH-iHeJ5c/edit?gid=0#gid=0';
     const CURRENCY = '₽';
 
     // --- Глобальные переменные ---
@@ -27,8 +27,8 @@ document.addEventListener('DOMContentLoaded', function () {
             
             menuData = csvText.split('\n').slice(1).map(row => {
                 const columns = row.match(/(".*?"|[^",]+)(?=\s*,|\s*$)/g) || [];
-                // --- ИЗМЕНЕНИЕ ЗДЕСЬ: Проверяем, что колонок теперь 6 ---
-                if (columns.length < 6) return null;
+                // Теперь нам достаточно 5 обязательных колонок
+                if (columns.length < 5) return null;
                 const clean = columns.map(c => c.trim().replace(/^"|"$/g, ''));
                 const item = {
                     id: clean[0], 
@@ -36,11 +36,11 @@ document.addEventListener('DOMContentLoaded', function () {
                     name: clean[2],
                     price: parseFloat(clean[3]), 
                     category_image: clean[4],
-                    // --- ИЗМЕНЕНИЕ ЗДЕСЬ: Читаем новую, шестую колонку ---
-                    item_image_url: clean[5]
+                    // item_image_url теперь необязательный. Если 6-й колонки нет, будет пустая строка.
+                    item_image_url: clean[5] || '' 
                 };
-                // Проверяем, что все данные корректны
-                if (!item.id || !item.category || !item.name || isNaN(item.price) || !item.category_image || !item.item_image_url) return null;
+                // Проверяем только обязательные поля
+                if (!item.id || !item.category || !item.name || isNaN(item.price) || !item.category_image) return null;
                 return item;
             }).filter(Boolean);
             
@@ -82,10 +82,12 @@ document.addEventListener('DOMContentLoaded', function () {
             <div class="grid-container">`;
         items.forEach(item => {
             const quantity = cart[item.id] || 0;
+            // Выбираем, какую картинку использовать: товара, если есть, или категории, если нет
+            const imageUrl = item.item_image_url ? item.item_image_url : item.category_image;
+
             html += `
                 <div class="item-card">
-                    <!-- ИЗМЕНЕНИЕ ЗДЕСЬ: Используем уникальную картинку товара -->
-                    <div class="item-image" style="background-image: url('${item.item_image_url}')"></div>
+                    <div class="item-image" style="background-image: url('${imageUrl}')"></div>
                     <div class="item-info">
                         <p class="item-name">${item.name}</p>
                         <div class="item-controls" id="controls-${item.id}">`;
@@ -110,27 +112,31 @@ document.addEventListener('DOMContentLoaded', function () {
         attachEventListeners();
     }
 
-    function updateCartView() {
-        // ... (этот код остается без изменений, как в вашей рабочей версии) ...
-        const cartItemsList = document.getElementById('cart-items-list');
-        const cartTotalPriceEl = document.getElementById('cart-total-price');
-        cartItemsList.innerHTML = '';
-        let totalItems = 0;
+    function updateAllDisplays() {
+        // ... (этот блок остается без изменений, как в последней рабочей версии) ...
         let totalPrice = 0;
-
+        let totalItems = 0;
+        for (const category in menu) {
+            menu[category].forEach(item => {
+                const quantitySpan = document.getElementById(`quantity-${item.id}`);
+                const quantity = cart[item.id] || 0;
+                if (quantitySpan) quantitySpan.innerText = quantity;
+            });
+        }
+        const cartItemsList = document.getElementById('cart-items-list');
+        cartItemsList.innerHTML = '';
         Object.keys(cart).forEach(id => {
             const item = menuData.find(m => m.id === id);
             const quantity = cart[id];
             if (!item || quantity <= 0) return;
             totalItems += quantity;
             totalPrice += item.price * quantity;
+            const imageUrl = item.item_image_url ? item.item_image_url : item.category_image;
             const li = document.createElement('div');
             li.className = 'cart-item-card';
             li.innerHTML = `
-                <div class="item-image" style="background-image: url('${item.item_image_url}')"></div>
-                <div class="item-info">
-                    <p>${item.name}</p>
-                </div>
+                <div class="item-image" style="background-image: url('${imageUrl}')"></div>
+                <div class="item-info"> <p>${item.name}</p> </div>
                 <div class="item-controls">
                     <button class="btn-minus" data-id="${item.id}">-</button>
                     <span>${quantity}</span>
@@ -138,19 +144,17 @@ document.addEventListener('DOMContentLoaded', function () {
                 </div>`;
             cartItemsList.appendChild(li);
         });
-
         if (totalItems === 0) {
             cartItemsList.innerHTML = '<p id="empty-cart-message">Ваша корзина пуста</p>';
         }
-
-        cartTotalPriceEl.innerText = `${totalPrice} ${CURRENCY}`;
+        document.getElementById('cart-total-price').innerText = `${totalPrice} ${CURRENCY}`;
         document.getElementById('floating-cart-text').innerText = `Корзина (${totalItems})`;
-        
         floatingCartBtn.style.display = 'flex';
-
         if (totalItems > 0) {
+            if (webApp) webApp.MainButton.show();
             checkoutBtn.style.display = 'block';
         } else {
+            if (webApp) webApp.MainButton.hide();
             checkoutBtn.style.display = 'none';
         }
     }
@@ -159,14 +163,14 @@ document.addEventListener('DOMContentLoaded', function () {
     function addToCart(id) {
         cart[id] = (cart[id] || 0) + 1;
         updateItemControls(id);
-        updateCartView();
+        updateAllDisplays();
     }
     function removeFromCart(id) {
         if (cart[id]) {
             cart[id]--;
             if (cart[id] <= 0) delete cart[id];
             updateItemControls(id);
-            updateCartView();
+            updateAllDisplays();
         }
     }
     
@@ -256,18 +260,14 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
     
-    // Назначаем обработчик на кнопку в модальном окне
     checkoutBtn.addEventListener('click', handleCheckout);
     if (webApp) {
-        // Если мы в Telegram, то главной кнопкой становится MainButton
         webApp.onEvent('mainButtonClicked', handleCheckout);
-        checkoutBtn.style.display = 'none'; // А эту скрываем
+        checkoutBtn.style.display = 'none';
     }
 
     // --- ИНИЦИАЛИЗАЦИЯ ---
-    if(webApp) {
-        webApp.expand();
-    }
+    if(webApp) webApp.expand();
     loadMenu();
-    updateCartView();
+    updateAllDisplays();
 });
