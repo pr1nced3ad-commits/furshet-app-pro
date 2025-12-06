@@ -273,3 +273,70 @@ body {
     margin-top: var(--gap);
     cursor: pointer;
 }
+/* ======================= НОВОГОДНЯЯ ГИРЛЯНДА ======================= */
+.garland-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 40px; /* Высота гирлянды */
+    pointer-events: none; /* Чтобы не мешала нажимать на кнопки */
+    z-index: 999; /* Поверх всего */
+    overflow: hidden;
+}
+
+.garland-container ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    justify-content: center;
+}
+
+.garland-container li {
+    position: relative;
+    width: 12px; /* Размер лампочки */
+    height: 24px; /* Длина лампочки */
+    background: #fff;
+    border-radius: 50%;
+    margin: 0 15px;
+    animation: animate-garland 1.5s linear infinite;
+}
+
+.garland-container li::before {
+    content: '';
+    position: absolute;
+    top: -4px;
+    left: 3px;
+    width: 6px;
+    height: 6px;
+    background: #444;
+    border-radius: 50%;
+}
+
+/* Разные цвета и задержки анимации для лампочек */
+.garland-container li:nth-child(2n+1) {
+    animation-delay: 0.25s;
+}
+.garland-container li:nth-child(3n+1) {
+    animation-delay: 0.5s;
+}
+.garland-container li:nth-child(4n+1) {
+    animation-delay: 0.75s;
+}
+.garland-container li:nth-child(5n+1) {
+    animation-delay: 1s;
+}
+.garland-container li:nth-child(7n+1) {
+    animation-delay: 1.25s;
+}
+
+/* Анимация мигания и смены цвета */
+@keyframes animate-garland {
+    0% { background: #ff0000; box-shadow: 0 0 5px #ff0000, 0 0 10px #ff0000; }
+    20% { background: #00ff00; box-shadow: 0 0 5px #00ff00, 0 0 10px #00ff00; }
+    40% { background: #0000ff; box-shadow: 0 0 5px #0000ff, 0 0 10px #0000ff; }
+    60% { background: #ffff00; box-shadow: 0 0 5px #ffff00, 0 0 10px #ffff00; }
+    80% { background: #ff00ff; box-shadow: 0 0 5px #ff00ff, 0 0 10px #ff00ff; }
+    100% { background: #00ffff; box-shadow: 0 0 5px #00ffff, 0 0 10px #00ffff; }
+}
