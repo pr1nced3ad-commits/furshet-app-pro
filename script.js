@@ -180,13 +180,19 @@ document.addEventListener('DOMContentLoaded', function () {
         
         floatingCartBtn.style.display = 'flex';
 
-        if (totalItems > 0) {
-            if (webApp) webApp.MainButton.show();
-            checkoutBtn.style.display = 'block';
-        } else {
-            if (webApp) webApp.MainButton.hide();
-            checkoutBtn.style.display = 'none';
+
+        if (webApp) {
+            if (totalItems > 0) {
+                webApp.MainButton.setText("Оформить заказ");
+                webApp.MainButton.enable();
+                webApp.MainButton.show();
+            } else {
+                webApp.MainButton.disable();
+                webApp.MainButton.hide();
+            }
         }
+
+        checkoutBtn.style.display = totalItems > 0 ? 'block' : 'none';
     }
 
     // --- ОБРАБОТЧИКИ СОБЫТИЙ ---
