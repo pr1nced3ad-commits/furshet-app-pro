@@ -74,7 +74,7 @@ document.addEventListener('DOMContentLoaded', function () {
     function renderItems(items, title) {
         let html = `
             <div class="page-header">
-                <button id="back-to-categories-btn">←</button>
+                <button id="back-to-categories-btn" class="back-button">←</button>
                 <h2>${title}</h2>
             </div>
             <div class="grid-container">`;
@@ -274,4 +274,5 @@ document.addEventListener('DOMContentLoaded', function () {
     }
     loadMenu();
     updateAllDisplays();
+
 });
