@@ -273,6 +273,41 @@ body {
     margin-top: var(--gap);
     cursor: pointer;
 }
+/* ======================= НОВАЯ КНОПКА "НАЗАД" ======================= */
+.page-header {
+    display: flex;
+    align-items: center;
+    gap: 15px; /* Отступ между кнопкой и заголовком */
+    margin-bottom: 15px;
+}
+
+.back-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;  /* Фиксированная ширина */
+    height: 40px; /* Фиксированная высота */
+    font-size: 24px;
+    font-weight: bold;
+    background-color: var(--secondary-bg-color); /* Фон как у карточек */
+    border: 1px solid var(--border-color);
+    color: var(--text-color-primary);
+    border-radius: 50%; /* Круглая кнопка */
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    flex-shrink: 0; /* Чтобы кнопка не сжималась */
+}
+
+.back-button:active {
+    background-color: #dcdcdc; /* Цвет при нажатии */
+}
+
+.page-header h2 {
+    margin: 0;
+    font-size: 20px;
+    flex-grow: 1;
+    text-align: left; /* Выравниваем заголовок по левому краю */
+}
 /* ======================= НОВОГОДНЯЯ ГИРЛЯНДА (Адаптированная версия) ======================= */
 .garland-container {
     position: fixed;
@@ -327,4 +362,5 @@ body {
     25% { background: #50ff50; opacity: 1; }   /* Зеленый */
     50% { background: #5050ff; opacity: 0.5; } /* Синий */
     75% { background: #ffff50; opacity: 1; }   /* Желтый */
+
 }
