@@ -274,39 +274,47 @@ body {
     cursor: pointer;
 }
 /* ======================= НОВАЯ КНОПКА "НАЗАД" ======================= */
+/* ======================= НОВЫЙ "ЛИПКИЙ" ЗАГОЛОВОК ======================= */
 .page-header {
+    position: sticky; /* Главное свойство, которое делает блок "липким" */
+    top: 0; /* Прилипает к самому верху */
+    background-color: var(--primary-bg-color); /* Фон, чтобы контент не просвечивал */
+    padding: 10px 0; /* Небольшие отступы */
+    z-index: 10; /* Чтобы был поверх карточек товаров */
+    
     display: flex;
     align-items: center;
-    gap: 15px; /* Отступ между кнопкой и заголовком */
+    gap: 15px;
     margin-bottom: 15px;
+    border-bottom: 1px solid var(--border-color); /* Добавляем линию-разделитель */
 }
 
 .back-button {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 40px;  /* Фиксированная ширина */
-    height: 40px; /* Фиксированная высота */
+    width: 40px;
+    height: 40px;
     font-size: 24px;
     font-weight: bold;
-    background-color: var(--secondary-bg-color); /* Фон как у карточек */
+    background-color: var(--secondary-bg-color);
     border: 1px solid var(--border-color);
     color: var(--text-color-primary);
-    border-radius: 50%; /* Круглая кнопка */
+    border-radius: 50%;
     cursor: pointer;
     transition: background-color 0.2s ease;
-    flex-shrink: 0; /* Чтобы кнопка не сжималась */
+    flex-shrink: 0;
 }
 
 .back-button:active {
-    background-color: #dcdcdc; /* Цвет при нажатии */
+    background-color: #dcdcdc;
 }
 
 .page-header h2 {
     margin: 0;
     font-size: 20px;
     flex-grow: 1;
-    text-align: left; /* Выравниваем заголовок по левому краю */
+    text-align: left;
 }
 /* ======================= НОВОГОДНЯЯ ГИРЛЯНДА (Адаптированная версия) ======================= */
 .garland-container {
@@ -364,3 +372,4 @@ body {
     75% { background: #ffff50; opacity: 1; }   /* Желтый */
 
 }
+
