@@ -184,18 +184,7 @@ document.addEventListener('DOMContentLoaded', function () {
         floatingCartBtn.style.display = 'flex';
 
 
-        if (webApp) {
-            if (totalItems > 0) {
-                webApp.MainButton.setText("Оформить заказ");
-                webApp.MainButton.enable();
-                webApp.MainButton.show();
-            } else {
-                webApp.MainButton.disable();
-                webApp.MainButton.hide();
-            }
-        }
 
-        checkoutBtn.style.display = totalItems > 0 ? 'block' : 'none';
     }
 
     // --- ОБРАБОТЧИКИ СОБЫТИЙ ---
@@ -267,16 +256,16 @@ document.addEventListener('DOMContentLoaded', function () {
     
     checkoutBtn.addEventListener('click', handleCheckout);
     if (webApp) {
-        webApp.onEvent('mainButtonClicked', handleCheckout);
         checkoutBtn.style.display = 'none';
     }
 
     // --- ИНИЦИАЛИЗАЦИЯ ---
     if(webApp) {
         webApp.expand();
+        webApp.MainButton.hide();
     }
     loadMenu();
-    updateAllDisplays();
 
 });
+
 
