@@ -344,7 +344,7 @@ body {
     border: none;
     background-color: var(--accent-color);
     color: #ffffff;
-    border-radius: var(--border-radius);
+    border-radius: 30px;
     margin-top: var(--gap);
     cursor: pointer;
 }
@@ -447,6 +447,7 @@ body {
     75% { background: #ffff50; opacity: 1; }   /* Желтый */
 
 }
+
 
 
 
