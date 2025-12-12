@@ -283,13 +283,57 @@ body {
 .cart-item-card {
     display: flex;
     align-items: center;
-    gap: 10px;
-    padding: 10px 0;
+    gap: 15px;
+    padding: 15px 0;
     border-bottom: 1px solid var(--border-color);
 }
-.cart-item-card .item-image { width: 50px; height: 50px; border-radius: 8px; flex-shrink: 0; background-size: cover; background-position: center; }
-.cart-item-card .item-info { flex-grow: 1; text-align: left; }
-.cart-item-card .item-info p { font-size: 14px; margin: 0; }
+.cart-item-card:last-child {
+    border-bottom: none; /* Убираем линию у последнего элемента */
+}
+
+.cart-item-card .item-image {
+    width: 60px;  /* Увеличиваем картинку */
+    height: 60px;
+    border-radius: var(--border-radius-small);
+    flex-shrink: 0;
+    background-size: cover;
+    background-position: center;
+}
+
+.cart-item-card .item-info {
+    flex-grow: 1;
+    text-align: left;
+}
+.cart-item-card .item-info p {
+    font-size: 15px; /* Увеличиваем шрифт названия */
+    font-weight: 600;
+    margin: 0;
+}
+
+/* Делаем кнопки +/- в корзине такими же, как на карточках товаров */
+.cart-item-card .item-controls {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+.cart-item-card .item-controls button {
+    width: 36px;  /* Делаем кнопки крупнее */
+    height: 36px;
+    border: 1px solid var(--accent-color);
+    background-color: transparent;
+    color: var(--accent-color);
+    border-radius: 10px; /* Делаем квадратными со скругленными углами */
+    font-size: 22px;
+    font-weight: 600;
+    cursor: pointer;
+}
+.cart-item-card .item-controls span {
+    font-size: 18px;
+    font-weight: 600;
+    margin: 0 14px; /* Горизонтальные отступы */
+    min-width: 24px;
+    text-align: center;
+}
 
 /* --- Новая кнопка "Оформить заказ" в модальном окне --- */
 #checkout-btn {
@@ -403,5 +447,6 @@ body {
     75% { background: #ffff50; opacity: 1; }   /* Желтый */
 
 }
+
 
 
