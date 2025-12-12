@@ -1,13 +1,14 @@
-/* --- Глобальные стили, переменные и шрифт --- */
+/* --- Глобальные стили и переменные --- */
 :root {
-    --primary-bg-color: #ffffff;    /* Белый фон */
-    --secondary-bg-color: #f5f5f7;  /* Очень светлый серый для карточек */
-    --text-color-primary: #1d1d1f;   /* Почти черный для заголовков */
-    --text-color-secondary: #515154;/* Серый для описаний */
-    --accent-color: #007aff;         /* Яркий синий, как акцент */
-    --border-color: #d2d2d7;       /* Светлый цвет для разделителей */
-    --border-radius: 14px;
-    --gap: 12px;
+    --primary-bg-color: #f8f8f8;    /* Чуть более теплый белый */
+    --secondary-bg-color: #ffffff;  /* Карточки будут чисто белыми */
+    --text-color-primary: #1d1d1f;
+    --text-color-secondary: #86868b;/* Более мягкий серый для описаний */
+    --accent-color: #007aff;
+    --border-color: #e5e5e5;
+    --border-radius-large: 18px; /* Более скругленные углы */
+    --border-radius-small: 10px;
+    --gap: 15px;
 }
 
 body {
@@ -16,9 +17,8 @@ body {
     padding: var(--gap);
     background-color: var(--primary-bg-color);
     color: var(--text-color-primary);
-    padding-bottom: 80px; /* Отступ снизу для плавающей кнопки */
+    padding-bottom: 90px;
 }
-
 .container { max-width: 100%; margin: 0 auto; }
 
 /* --- Шапка --- */
@@ -72,18 +72,18 @@ body {
     display: flex;
     align-items: center;
     text-align: center;
-    margin: 20px 0;
-    color: var(--text-color-secondary);
+    margin: 25px 0;
+    color: #c5c5c5;
 }
 .section-divider::before, .section-divider::after {
     content: '';
     flex: 1;
-    border-bottom: 1px solid var(--border-color);
+    border-bottom: 1px solid #ebebeb;
 }
 .section-divider span {
     padding: 0 15px;
     font-size: 14px;
-    font-weight: 600;
+    font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 1px;
 }
@@ -95,57 +95,63 @@ body {
     gap: var(--gap);
 }
 
-/* --- Карточки категорий --- */
+/* --- Карточки категорий (НОВЫЙ СТИЛЬ) --- */
 .category-card {
     position: relative;
-    border-radius: var(--border-radius);
+    border-radius: var(--border-radius-large);
     overflow: hidden;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.07);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08); /* Мягкая, выраженная тень */
     cursor: pointer;
-    transition: transform 0.2s ease;
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
     aspect-ratio: 4 / 3;
 }
-.category-card:active { transform: scale(0.96); }
+.category-card:hover { 
+    transform: translateY(-5px);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.12);
+}
 .category-card .image-container {
-    width: 100%;
-    height: 100%;
+    width: 100%; height: 100%;
     background-size: cover;
     background-position: center;
+    transition: transform 0.3s ease;
+}
+.category-card:hover .image-container {
+    transform: scale(1.05); /* Легкий зум при наведении */
 }
 .category-card .title-overlay {
     position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    padding: 20px 8px 8px;
-    background: linear-gradient(to top, rgba(0,0,0,0.7), transparent);
+    bottom: 0; left: 0; right: 0;
+    padding: 25px 10px 10px;
+    /* УСИЛЕННЫЙ ГРАДИЕНТ для лучшей читаемости */
+    background: linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.7) 40%, transparent 100%);
 }
 .category-card p {
     margin: 0;
-    font-size: 15px;
+    font-size: 16px;
     font-weight: 700;
     color: #ffffff;
     text-align: center;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.5); /* Тень для текста */
 }
 
-/* --- Карточки товаров --- */
+/* --- Карточки товаров (НОВЫЙ СТИЛЬ) --- */
 .item-card {
     display: flex;
     flex-direction: column;
     text-align: left;
-    border-radius: var(--border-radius);
+    border-radius: var(--border-radius-large);
     background-color: var(--secondary-bg-color);
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.07);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+    overflow: hidden; /* Важно для скругления картинки */
 }
 .item-card .item-image {
     width: 100%;
     aspect-ratio: 1 / 1;
     background-size: cover;
     background-position: center;
-    border-radius: var(--border-radius) var(--border-radius) 0 0;
 }
 .item-card .item-info {
-    padding: 10px;
+    padding: 12px;
     flex-grow: 1;
     display: flex;
     flex-direction: column;
@@ -153,8 +159,48 @@ body {
 .item-info .item-name {
     font-size: 14px;
     font-weight: 600;
-    margin: 0 0 5px 0;
+    margin: 0 0 8px 0;
     flex-grow: 1;
+}
+
+/* --- "Липкий" заголовок --- */
+.page-header {
+    position: sticky;
+    top: -1px; /* Чтобы скрыть верхнюю границу, пока не прилипнет */
+    background-color: rgba(248, 248, 248, 0.85); /* Полупрозрачный фон */
+    backdrop-filter: blur(10px); /* Эффект размытия (работает в Safari/Chrome) */
+    -webkit-backdrop-filter: blur(10px);
+    padding: 15px var(--gap);
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin: 0 calc(-1 * var(--gap)) 15px; /* Растягиваем на всю ширину */
+    border-bottom: 1px solid var(--border-color);
+}
+.back-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    font-size: 24px;
+    font-weight: bold;
+    background-color: var(--secondary-bg-color);
+    border: 1px solid var(--border-color);
+    color: var(--text-color-primary);
+    border-radius: 50%;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    flex-shrink: 0;
+}
+.back-button:active { background-color: #dcdcdc; }
+.page-header h2 {
+    margin: 0;
+    font-size: 22px;
+    font-weight: 700;
+    flex-grow: 1;
+    text-align: left;
 }
 
 /* --- Кнопки +/- на карточках товаров --- */
@@ -165,15 +211,9 @@ body {
     margin-top: 10px;
 }
 .item-controls .btn-plus-item {
-    width: 100%;
-    height: 32px;
-    border: none;
-    background-color: var(--accent-color);
-    color: #ffffff;
-    border-radius: 8px;
-    font-size: 18px;
-    font-weight: bold;
-    cursor: pointer;
+    width: 100%; height: 32px; border: none;
+    background-color: var(--accent-color); color: #ffffff;
+    border-radius: 8px; font-size: 18px; font-weight: bold; cursor: pointer;
 }
 .item-controls .counter {
     display: flex;
@@ -182,40 +222,24 @@ body {
     width: 100%;
 }
 .counter button {
-    width: 32px;
-    height: 32px;
-    border: 1px solid var(--accent-color);
-    background-color: transparent;
-    color: var(--accent-color);
-    border-radius: 8px;
-    font-size: 20px;
-    font-weight: bold;
-    cursor: pointer;
+    width: 32px; height: 32px; border: 1px solid var(--accent-color);
+    background-color: transparent; color: var(--accent-color);
+    border-radius: 8px; font-size: 20px; font-weight: bold; cursor: pointer;
 }
-.counter span {
-    font-size: 18px;
-    font-weight: 600;
-}
+.counter span { font-size: 18px; font-weight: 600; }
 
 /* --- Плавающая кнопка корзины --- */
 #floating-cart-btn {
-    position: fixed;
-    bottom: 20px;
-    left: 50%;
+    position: fixed; bottom: 20px; left: 50%;
     transform: translateX(-50%);
     padding: 12px 20px;
     background-color: var(--accent-color);
     color: #ffffff;
     border-radius: 25px;
-    font-size: 16px;
-    font-weight: 600;
+    font-size: 16px; font-weight: 600;
     box-shadow: 0 4px 15px rgba(0, 122, 255, 0.4);
-    cursor: pointer;
-    transition: all 0.3s ease;
-    z-index: 20;
-    display: flex;
-    align-items: center;
-    gap: 8px;
+    cursor: pointer; transition: all 0.3s ease;
+    z-index: 20; display: flex; align-items: center; gap: 8px;
 }
 
 /* --- Модальное окно корзины --- */
@@ -227,9 +251,16 @@ body {
     opacity: 1; transition: opacity 0.3s ease;
     z-index: 30;
 }
+#checkout-btn {
+    transition: background-color 0.2s ease;
+}
+#checkout-btn:active {
+    background-color: #0056b3; /* Затемнение при нажатии */
+}
 .modal-overlay.hidden { opacity: 0; pointer-events: none; }
 .modal-content {
     background-color: var(--primary-bg-color);
+    box-shadow: 0 -10px 40px rgba(0,0,0,0.15); /* Тень сверху */
     width: 100%; max-height: 80%;
     border-radius: var(--border-radius) var(--border-radius) 0 0;
     padding: var(--gap);
@@ -372,4 +403,5 @@ body {
     75% { background: #ffff50; opacity: 1; }   /* Желтый */
 
 }
+
 
