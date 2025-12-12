@@ -72,37 +72,40 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function renderItems(items, title) {
-        let html = `
-            <div class="page-header">
-                <button id="back-to-categories-btn" class="back-button">←</button>
-                <h2>${title}</h2>
-            </div>
-            <div class="grid-container">`;
-        items.forEach(item => {
-            const quantity = cart[item.id] || 0;
-            // Выбираем, какую картинку использовать: товара, если есть, или категории, если нет
-            const imageUrl = item.item_image_url ? item.item_image_url : item.category_image;
+    // --- ИЗМЕНЕНИЕ: Создаем контейнер для всего экрана товаров ---
+    let html = '<div id="items-page-container">';
+    
+    html += `
+        <div class="page-header">
+            <button id="back-to-categories-btn" class="back-button">←</button>
+            <h2>${title}</h2>
+        </div>
+        <div class="grid-container">`;
+    items.forEach(item => {
+        const quantity = cart[item.id] || 0;
+        // ... (здесь весь ваш код для карточки товара, он остается без изменений) ...
+        const imageUrl = item.item_image_url ? item.item_image_url : item.category_image;
+        html += `
+            <div class="item-card">
+                <div class="item-image" style="background-image: url('${imageUrl}')"></div>
+                <div class="item-info">
+                    <p class="item-name">${item.name}</p>
+                    <div class="item-controls" id="controls-${item.id}">`;
+        if (quantity > 0) {
             html += `
-                <div class="item-card">
-                    <div class="item-image" style="background-image: url('${imageUrl}')"></div>
-                    <div class="item-info">
-                        <p class="item-name">${item.name}</p>
-                        <div class="item-controls" id="controls-${item.id}">`;
-            if (quantity > 0) {
-                html += `
-                    <div class="counter">
-                        <button class="btn-minus" data-id="${item.id}">-</button>
-                        <span>${quantity}</span>
-                        <button class="btn-plus" data-id="${item.id}">+</button>
-                    </div>`;
-            } else {
-                html += `<button class="btn-plus-item" data-id="${item.id}">${item.price} ${CURRENCY}</button>`;
-            }
-            html += `</div></div></div>`;
-        });
-        html += '</div>';
-        showContent(html);
-    }
+                <div class="counter">
+                    <button class="btn-minus" data-id="${item.id}">-</button>
+                    <span>${quantity}</span>
+                    <button class="btn-plus" data-id="${item.id}">+</button>
+                </div>`;
+        } else {
+            html += `<button class="btn-plus-item" data-id="${item.id}">${item.price} ${CURRENCY}</button>`;
+        }
+        html += `</div></div></div>`;
+    });
+    html += '</div></div>'; // Закрываем grid-container и items-page-container
+    showContent(html);
+}
 
     function showContent(html) {
         contentContainer.innerHTML = html;
@@ -276,3 +279,4 @@ document.addEventListener('DOMContentLoaded', function () {
     updateAllDisplays();
 
 });
+
